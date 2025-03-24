@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import api from "../axios/axios";
+import {Ionicons} from "@expo/vector-icons"
+
 
 export default function Login({ navigation }) {
     const [user, setUser] = useState({
         cpf: '',
-        password: ''
+        password: '',
+        showPassword: false
     });
 
-    const [focusedInput, setFocusedInput] = useState(null);
+    const [focusedInput, setFocusedInput] = useState(null); // constante para saber qual input está em foco
 
     async function handleLogin() {
         await api.postLogin(user)
@@ -55,19 +58,27 @@ export default function Login({ navigation }) {
                 />
 
                 <Text style={styles.Text}>Senha</Text>
-                <TextInput
-                    placeholder="Digite sua senha *"
-                    placeholderTextColor="#000000"
-                    secureTextEntry //A senha não fica visível
-                    value={user.password}
-                    onChangeText={(value) => setUser({ ...user, password: value })}
-                    style={[
-                        styles.input,
-                        { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
-                    ]}
-                    onFocus={() => setFocusedInput("password")}
-                    onBlur={() => setFocusedInput(null)}
-                />
+
+                <View style={styles.ContainerPassword}>
+                    <TextInput
+                        placeholder="Digite sua senha *"
+                        placeholderTextColor="#000000"
+                        secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
+                        value={user.password}
+                        onChangeText={(value) => setUser({ ...user, password: value })}
+                        style={[
+                            styles.inputPassword,
+                            { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
+                        ]}
+                        onFocus={() => setFocusedInput("password")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+
+                    <TouchableOpacity onPress={() => setUser({...user, showPassword: !user.showPassword })}>
+                        <Ionicons name={user.showPassword? "eye-off" : "eye"} size={34} color="#808080"/>
+                    </TouchableOpacity>
+                </View>
+                
             </View>
 
             <TouchableOpacity style={styles.ButtonEntrar} onPress={handleLogin}>
@@ -119,6 +130,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 20
     },
+    inputPassword: {
+        color: "#000000",
+        fontSize: 16,
+        width: "90%"
+    },
     ButtonEntrar: {
         backgroundColor: "#215299",
         width: "80%",
@@ -148,5 +164,13 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         marginRight: 10,
         fontSize: 16
+    },
+    ContainerPassword: {
+        marginBottom: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderWidth: 1, //Espessura da borda
+        padding: 5,
+        borderRadius: 10,
     }
 });
