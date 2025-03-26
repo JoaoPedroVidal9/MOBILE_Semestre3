@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import api from "../axios/axios";
-import {Ionicons} from "@expo/vector-icons"
+import { Ionicons } from "@expo/vector-icons"
 
 
 export default function Login({ navigation }) {
@@ -37,48 +37,51 @@ export default function Login({ navigation }) {
             </View>
 
             <View style={styles.ViewInputs}>
+                
                 <Text style={styles.Text}>Usuário</Text>
-                <TextInput
-                    placeholder="Digite seu CPF *"
-                    placeholderTextColor="#000000"
-                    value={user.cpf}
-                    onChangeText={(value) => {
-                        // Filtra apenas números e limita a 11 caracteres
-                        const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
-                        setUser({ ...user, cpf: numericValue });
-                    }}
-                    style={[
-                        styles.input,
-                        { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
-                    ]}
-                    keyboardType="numeric" // Exibe apenas o teclado numérico
-                    maxLength={11} // Limita a entrada a 11 caracteres
-                    onFocus={() => setFocusedInput("cpf")}
-                    onBlur={() => setFocusedInput(null)}
-                />
+
+                <View style={[styles.Container,
+                    { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                ]}>
+                    <TextInput
+                        placeholder="Digite seu CPF *"
+                        placeholderTextColor="#000000"
+                        value={user.cpf}
+                        onChangeText={(value) => {
+                            // Filtra apenas números e limita a 11 caracteres
+                            const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
+                            setUser({ ...user, cpf: numericValue });
+                        }}
+                        style={styles.inputCPF}
+                        keyboardType="numeric" // Exibe apenas o teclado numérico
+                        maxLength={11} // Limita a entrada a 11 caracteres
+                        onFocus={() => setFocusedInput("cpf")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+                </View>
+
 
                 <Text style={styles.Text}>Senha</Text>
 
-                <View style={styles.ContainerPassword}>
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
+                ]}>
                     <TextInput
                         placeholder="Digite sua senha *"
                         placeholderTextColor="#000000"
                         secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
                         value={user.password}
                         onChangeText={(value) => setUser({ ...user, password: value })}
-                        style={[
-                            styles.inputPassword,
-                            { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
-                        ]}
+                        style={styles.inputPassword}
                         onFocus={() => setFocusedInput("password")}
                         onBlur={() => setFocusedInput(null)}
                     />
 
-                    <TouchableOpacity onPress={() => setUser({...user, showPassword: !user.showPassword })}>
-                        <Ionicons name={user.showPassword? "eye-off" : "eye"} size={34} color="#808080"/>
+                    <TouchableOpacity onPress={() => setUser({ ...user, showPassword: !user.showPassword })}>
+                        <Ionicons name={user.showPassword ? "eye-off" : "eye"} size={34} color="#808080" />
                     </TouchableOpacity>
                 </View>
-                
+
             </View>
 
             <TouchableOpacity style={styles.ButtonEntrar} onPress={handleLogin}>
@@ -122,13 +125,19 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         marginBottom: 5
     },
-    input: {
-        color: "#000000",
+    Container: {
+        marginBottom: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
         borderWidth: 1, //Espessura da borda
-        padding: 13,
+        padding: 5,
         borderRadius: 10,
+    },
+    inputCPF: {
+        color: "#000000",
         fontSize: 16,
-        marginBottom: 20
+        width: "100%",
+        backgroundColor: "blue"
     },
     inputPassword: {
         color: "#000000",
@@ -165,12 +174,5 @@ const styles = StyleSheet.create({
         marginRight: 10,
         fontSize: 16
     },
-    ContainerPassword: {
-        marginBottom: 20,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        borderWidth: 1, //Espessura da borda
-        padding: 5,
-        borderRadius: 10,
-    }
+    
 });

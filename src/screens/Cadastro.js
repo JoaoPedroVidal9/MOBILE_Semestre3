@@ -8,7 +8,9 @@ export default function Cadastro({ navigation }) {
         email: '',
         cpf: '',
         password: '',
-        password2: ''
+        password2: '',
+        showPassword: false,
+        showPassword2: false
     });
 
     const [focusedInput, setFocusedInput] = useState(null);
@@ -32,67 +34,103 @@ export default function Cadastro({ navigation }) {
             <Image source={require("../../assets/logo_senai.png")} style={styles.logo} />
 
             <View style={styles.ViewInputs}>
+
                 <Text style={styles.Text} >Cadastre-se</Text>
-                <TextInput
-                    placeholder="Digite seu nome"
-                    value={user.name}
-                    onChangeText={(value) => setUser({ ...user, name: value })}
-                    style={[styles.input, { borderColor: focusedInput === "name" ? "#af2e2e" : "#000000" }]}
-                    placeholderTextColor="#000000"
-                    onFocus={() => setFocusedInput("name")}
-                    onBlur={() => setFocusedInput(null)}
-                />
-                <TextInput
-                    placeholder="Digite seu e-mail"
-                    value={user.email}
-                    onChangeText={(value) => {
-                        // Filtra apenas letras, números, ponto e arroba
-                        //Remove qualquer caractere que não seja letra, número, ponto ou arroba.
-                        //g no final significa "global"
-                        const filteredValue = value.replace(/[^a-zA-Z0-9.@]/g, "");
-                        setUser({ ...user, email: filteredValue });
-                    }}
-                    style={[styles.input, { borderColor: focusedInput === "email" ? "#af2e2e" : "#000000" }]}
-                    placeholderTextColor="#000000"
-                    keyboardType="email-address" // Sugere o teclado correto no celular
-                    autoCapitalize="none" // Evita letras maiúsculas automáticas
-                    onFocus={() => setFocusedInput("email")}
-                    onBlur={() => setFocusedInput(null)}
-                />
-                <TextInput
-                    placeholder="Digite seu CPF"
-                    value={user.cpf}
-                    onChangeText={(value) => {
-                        const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
-                        setUser({ ...user, cpf: numericValue });
-                    }}
-                    style={[styles.input, { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }]}
-                    placeholderTextColor="#000000"
-                    keyboardType="numeric"
-                    maxLength={11}
-                    onFocus={() => setFocusedInput("cpf")}
-                    onBlur={() => setFocusedInput(null)}
-                />
-                <TextInput
-                    placeholder="Digite sua senha"
-                    value={user.password}
-                    onChangeText={(value) => setUser({ ...user, password: value })}
-                    style={[styles.input, { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }]}
-                    secureTextEntry
-                    placeholderTextColor="#000000"
-                    onFocus={() => setFocusedInput("password")}
-                    onBlur={() => setFocusedInput(null)}
-                />
-                <TextInput
-                    placeholder="Confirme sua senha"
-                    value={user.password2}
-                    onChangeText={(value) => setUser({ ...user, password2: value })}
-                    style={[styles.input, { borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000" }]}
-                    secureTextEntry
-                    placeholderTextColor="#000000"
-                    onFocus={() => setFocusedInput("password2")}
-                    onBlur={() => setFocusedInput(null)}
-                />
+
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                ]}>
+                    <TextInput
+                        placeholder="Digite seu nome"
+                        value={user.name}
+                        onChangeText={(value) => setUser({ ...user, name: value })}
+                        style={styles.input}
+                        placeholderTextColor="#000000"
+                        onFocus={() => setFocusedInput("name")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+                </View>
+
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                ]}>
+                    <TextInput
+                        placeholder="Digite seu e-mail"
+                        value={user.email}
+                        onChangeText={(value) => {
+                            // Filtra apenas letras, números, ponto e arroba
+                            //Remove qualquer caractere que não seja letra, número, ponto ou arroba.
+                            //g no final significa "global"
+                            const filteredValue = value.replace(/[^a-zA-Z0-9.@]/g, "");
+                            setUser({ ...user, email: filteredValue });
+                        }}
+                        style={styles.input}
+                        placeholderTextColor="#000000"
+                        keyboardType="email-address" // Sugere o teclado correto no celular, Incluir @ e .com no teclado para facilitar a digitação
+                        autoCapitalize="none" // Evita letras maiúsculas automáticas
+                        onFocus={() => setFocusedInput("email")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+                </View>
+
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                ]}>
+                    <TextInput
+                        placeholder="Digite seu CPF *"
+                        placeholderTextColor="#000000"
+                        value={user.cpf}
+                        onChangeText={(value) => {
+                            // Filtra apenas números e limita a 11 caracteres
+                            const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
+                            setUser({ ...user, cpf: numericValue });
+                        }}
+                        style={styles.input}
+                        keyboardType="numeric" // Exibe apenas o teclado numérico
+                        maxLength={11} // Limita a entrada a 11 caracteres
+                        onFocus={() => setFocusedInput("cpf")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+                </View>
+
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
+                ]} >
+                    <TextInput
+                        placeholder="Digite sua senha"
+                        value={user.password}
+                        onChangeText={(value) => setUser({ ...user, password: value })}
+                        style={styles.inputPassword}
+                        secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
+                        placeholderTextColor="#000000"
+                        onFocus={() => setFocusedInput("password")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+
+                    <TouchableOpacity onPress={() => setUser({ ...user, showPassword: !user.showPassword })}>
+                        <Ionicons name={user.showPassword ? "eye-off" : "eye"} size={34} color="#808080" />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={[styles.Container,
+                { borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000" }
+                ]} >
+                    <TextInput
+                        placeholder="Confirme sua senha"
+                        value={user.password2}
+                        onChangeText={(value) => setUser({ ...user, password2: value })}
+                        style={styles.inputPassword}
+                        secureTextEntry={user.showPassword2} //A senha não ficar visível a menos que ele clique no icon
+                        placeholderTextColor="#000000"
+                        onFocus={() => setFocusedInput("password2")}
+                        onBlur={() => setFocusedInput(null)}
+                    />
+
+                    <TouchableOpacity onPress={() => setUser({ ...user, showPassword2: !user.showPassword2 })}>
+                        <Ionicons name={user.showPassword2 ? "eye-off" : "eye"} size={34} color="#808080" />
+                    </TouchableOpacity>
+                </View>
+
             </View>
 
             <View style={styles.viewNavigate}>
@@ -103,6 +141,7 @@ export default function Cadastro({ navigation }) {
                     <Text style={styles.TextNavigate2}>Criar Conta</Text>
                 </TouchableOpacity>
             </View>
+
         </View>
     );
 }
@@ -126,13 +165,24 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         marginBottom: 15
     },
+    Container: {
+        marginBottom: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderWidth: 1, //Espessura da borda
+        padding: 5,
+        borderRadius: 10,
+    },
     input: {
         color: "#000000",
-        borderWidth: 1,
-        padding: 13,
-        borderRadius: 10,
         fontSize: 16,
-        marginBottom: 20
+        width: "100%",
+        backgroundColor: "blue"
+    },
+    inputPassword: {
+        color: "#000000",
+        fontSize: 16,
+        width: "90%"
     },
     viewNavigate: {
         display: "flex",
@@ -149,16 +199,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
     },
+    TextNavigate1: {
+        color: "#215299",
+    },
     buttonColor2: {
         backgroundColor: "#215299",
         padding: 10,
         borderRadius: 5,
         borderWidth: 1,
     },
-    TextNavigate1: {
-        color: "#215299",
-    },
     TextNavigate2: {
         color: "#FFFFFF",
-    },
+    }
 });
