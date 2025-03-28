@@ -3,12 +3,11 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } fro
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons"
 
-
 export default function Login({ navigation }) {
     const [user, setUser] = useState({
         cpf: '',
         password: '',
-        showPassword: false
+        showPassword: true
     });
 
     const [focusedInput, setFocusedInput] = useState(null); // constante para saber qual input está em foco
@@ -22,7 +21,7 @@ export default function Login({ navigation }) {
                     navigation.navigate("Home");
                 },
                 (error) => {
-                    console.log(error);
+                    console.log(error.response.data.error);
                     Alert.alert(error.response.data.error);
                 }
             );
@@ -53,7 +52,7 @@ export default function Login({ navigation }) {
                             setUser({ ...user, cpf: numericValue });
                         }}
                         style={styles.inputCPF}
-                        keyboardType="numeric" // Exibe apenas o teclado numérico
+                        keyboardType="number-pad" // Exibe apenas o teclado numérico
                         maxLength={11} // Limita a entrada a 11 caracteres
                         onFocus={() => setFocusedInput("cpf")}
                         onBlur={() => setFocusedInput(null)}
@@ -63,12 +62,13 @@ export default function Login({ navigation }) {
 
                 <Text style={styles.Text}>Senha</Text>
 
-                <View style={[styles.Container,
+                <View style={[styles.Container2,
                 { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
                 ]}>
                     <TextInput
                         placeholder="Digite sua senha *"
                         placeholderTextColor="#000000"
+                        maxLength={50}
                         secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
                         value={user.password}
                         onChangeText={(value) => setUser({ ...user, password: value })}
@@ -130,14 +130,22 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         borderWidth: 1, //Espessura da borda
-        padding: 5,
+        padding: 12,
         borderRadius: 10,
     },
     inputCPF: {
         color: "#000000",
         fontSize: 16,
         width: "100%",
-        backgroundColor: "blue"
+    },
+    Container2: {
+        marginBottom: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderWidth: 1, //Espessura da borda
+        paddingLeft: 15,
+        padding: 5,
+        borderRadius: 9,
     },
     inputPassword: {
         color: "#000000",

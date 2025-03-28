@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import api from "../axios/axios";
+import { Ionicons } from "@expo/vector-icons"
 
 export default function Cadastro({ navigation }) {
     const [user, setUser] = useState({
@@ -9,8 +10,8 @@ export default function Cadastro({ navigation }) {
         cpf: '',
         password: '',
         password2: '',
-        showPassword: false,
-        showPassword2: false
+        showPassword: true,
+        showPassword2: true
     });
 
     const [focusedInput, setFocusedInput] = useState(null);
@@ -38,7 +39,7 @@ export default function Cadastro({ navigation }) {
                 <Text style={styles.Text} >Cadastre-se</Text>
 
                 <View style={[styles.Container,
-                { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                { borderColor: focusedInput === "name" ? "#af2e2e" : "#000000" }
                 ]}>
                     <TextInput
                         placeholder="Digite seu nome"
@@ -46,13 +47,14 @@ export default function Cadastro({ navigation }) {
                         onChangeText={(value) => setUser({ ...user, name: value })}
                         style={styles.input}
                         placeholderTextColor="#000000"
+                        maxLength={10} // Limita a entrada a 10 caracteres (trocar depois nome para 255)
                         onFocus={() => setFocusedInput("name")}
                         onBlur={() => setFocusedInput(null)}
                     />
                 </View>
 
                 <View style={[styles.Container,
-                { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" }
+                { borderColor: focusedInput === "email" ? "#af2e2e" : "#000000" }
                 ]}>
                     <TextInput
                         placeholder="Digite seu e-mail"
@@ -66,7 +68,8 @@ export default function Cadastro({ navigation }) {
                         }}
                         style={styles.input}
                         placeholderTextColor="#000000"
-                        keyboardType="email-address" // Sugere o teclado correto no celular, Incluir @ e .com no teclado para facilitar a digitação
+                        keyboardType="email-address" // Incluir @ e . no teclado para facilitar a digitação
+                        maxLength={255} // Limita a entrada a 255 caracteres
                         autoCapitalize="none" // Evita letras maiúsculas automáticas
                         onFocus={() => setFocusedInput("email")}
                         onBlur={() => setFocusedInput(null)}
@@ -86,14 +89,14 @@ export default function Cadastro({ navigation }) {
                             setUser({ ...user, cpf: numericValue });
                         }}
                         style={styles.input}
-                        keyboardType="numeric" // Exibe apenas o teclado numérico
+                        keyboardType="numeric" // Exibe o teclado numérico
                         maxLength={11} // Limita a entrada a 11 caracteres
                         onFocus={() => setFocusedInput("cpf")}
                         onBlur={() => setFocusedInput(null)}
                     />
                 </View>
 
-                <View style={[styles.Container,
+                <View style={[styles.Container2,
                 { borderColor: focusedInput === "password" ? "#af2e2e" : "#000000" }
                 ]} >
                     <TextInput
@@ -103,6 +106,7 @@ export default function Cadastro({ navigation }) {
                         style={styles.inputPassword}
                         secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
                         placeholderTextColor="#000000"
+                        maxLength={50}
                         onFocus={() => setFocusedInput("password")}
                         onBlur={() => setFocusedInput(null)}
                     />
@@ -112,7 +116,7 @@ export default function Cadastro({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                <View style={[styles.Container,
+                <View style={[styles.Container2,
                 { borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000" }
                 ]} >
                     <TextInput
@@ -122,6 +126,7 @@ export default function Cadastro({ navigation }) {
                         style={styles.inputPassword}
                         secureTextEntry={user.showPassword2} //A senha não ficar visível a menos que ele clique no icon
                         placeholderTextColor="#000000"
+                        maxLength={50}
                         onFocus={() => setFocusedInput("password2")}
                         onBlur={() => setFocusedInput(null)}
                     />
@@ -170,14 +175,22 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         borderWidth: 1, //Espessura da borda
-        padding: 5,
+        padding: 12,
         borderRadius: 10,
     },
     input: {
         color: "#000000",
         fontSize: 16,
         width: "100%",
-        backgroundColor: "blue"
+    },
+    Container2: {
+        marginBottom: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderWidth: 1, //Espessura da borda
+        paddingLeft: 12,
+        padding: 5,
+        borderRadius: 10,
     },
     inputPassword: {
         color: "#000000",
