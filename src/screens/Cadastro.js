@@ -47,7 +47,7 @@ export default function Cadastro({ navigation }) {
                         onChangeText={(value) => setUser({ ...user, name: value })}
                         style={styles.input}
                         placeholderTextColor="#000000"
-                        maxLength={10} // Limita a entrada a 10 caracteres (trocar depois nome para 255)
+                        maxLength={255}
                         onFocus={() => setFocusedInput("name")}
                         onBlur={() => setFocusedInput(null)}
                     />
