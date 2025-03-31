@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
+import { View, Text} from "react-native";
 
 export default function Home() {
     return(
