@@ -4,7 +4,7 @@ export default function Home() {
     return(
         <View>
             <Text>
-                Bem-vindo a página
+                Bem-vindo, a página!
             </Text>
         </View>
     )
