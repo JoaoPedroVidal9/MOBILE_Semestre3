@@ -4,6 +4,15 @@ import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons"
 
 export default function Cadastro({ navigation }) {
+    const [user, setUser] = useState({
+        name: '',
+        email: '',
+        cpf: '',
+        password: '',
+        password2: '',
+        showPassword: true,
+        showPassword2: true
+    });
 
     const [focusedInput, setFocusedInput] = useState(null);
 
