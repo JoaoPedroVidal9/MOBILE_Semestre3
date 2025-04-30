@@ -10,20 +10,23 @@ import {
 } from "react-native";
 export default function ListaSalas() {
   const [salas, setSalas] = useState([]);
+  const [infoSchedule, setInfoSchedule] = useState({
+    weekStart: "1990-01-01",
+    weekEnd: "1990-01-01",
+  });
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [dates, setDates] = useState({});
-  
+
   const formatInput = (text) => {
     // Remove qualquer caractere não numérico
-    let value = text.replace(/\D/g, '');
+    let value = text.replace(/\D/g, "");
 
     // Adiciona hífens entre os números
     if (value.length > 4) {
-      value = value.substring(0, 4) + '-' + value.substring(4);
+      value = value.substring(0, 4) + "-" + value.substring(4);
     }
     if (value.length > 7) {
-      value = value.substring(0, 7) + '-' + value.substring(7);
+      value = value.substring(0, 7) + "-" + value.substring(7);
     }
 
     // Atualiza o valor do input
@@ -47,13 +50,11 @@ export default function ListaSalas() {
 
   return (
     <View>
-      <Text
-      // style={styles.title}
-      >
+      <Text>
         Salas Disponíveis
       </Text>
       {loading ? (
-        <ActivityIndicator size="large" color="#BECE18" />
+        <ActivityIndicator size="large" color="#ff0000" />
       ) : (
         <FlatList
           data={salas}
@@ -82,18 +83,32 @@ export default function ListaSalas() {
           <Text>Consultar Disponibilidade:</Text>
           <Text>Selecione os dias para consultar a semana:</Text>
           <TextInput
-            placeholder="Digite o dia da Segunda-Feira *"
+            placeholder="Digite o primeiro dia da semana (uma Segunda-feira): *"
             placeholderTextColor="#000000"
-            value={dates.segunda}
+            value={infoSchedule.weekStart}
             onChangeText={(value) => {
-              setUser({ ...dates, value: numericValue });
+              setInfoSchedule({ ...infoSchedule, value: weekStart });
             }}
-            style={styles.input}
-            keyboardType="numeric" // Exibe o teclado numérico
-            maxLength={11} // Limita a entrada a 11 caracteres
-            onFocus={() => setFocusedInput("cpf")}
+            keyboardType="numeric"
+            maxLength={10}
+            onFocus={() => setFocusedInput("weekStart")}
             onBlur={() => setFocusedInput(null)}
           />
+          <TextInput
+            placeholder="Digite o ultimo dia da semana (um Sábado): *"
+            placeholderTextColor="#000000"
+            value={infoSchedule.weekEnd}
+            onChangeText={(value) => {
+              setInfoSchedule({ ...infoSchedule, value: weekEnd });
+            }}
+            keyboardType="numeric"
+            maxLength={10}
+            onFocus={() => setFocusedInput("weekEnd")}
+            onBlur={() => setFocusedInput(null)}
+          />
+          <TouchableOpacity
+            onPress={() => setModalVisible(false)}
+          >Fechar</TouchableOpacity>
         </View>
       </Modal>
     </View>
