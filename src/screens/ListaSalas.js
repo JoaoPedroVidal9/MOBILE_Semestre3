@@ -6,36 +6,52 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Box,
+  Modal,
+  TextInput,
 } from "react-native";
-export default function ListaSalas() {
+
+export default function ListaSalas({ navigation }) {
   const [salas, setSalas] = useState([]);
-  const [infoSchedule, setInfoSchedule] = useState({
-    weekStart: "1990-01-01",
-    weekEnd: "1990-01-01",
-  });
-  const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const formatInput = (text) => {
-    // Remove qualquer caractere não numérico
-    let value = text.replace(/\D/g, "");
+  const [infoListSalas, setInfoListSalas] = useState({
+    modalConsulta: false,
+    modalDisponivel: false,
+    infoSchedule: {
+      weekStart: "1990-01-01",
+      weekEnd: "1990-01-01",
+    },
+    salaSelecionada:{},
+    idSala:"",
+  });
 
-    // Adiciona hífens entre os números
-    if (value.length > 4) {
-      value = value.substring(0, 4) + "-" + value.substring(4);
-    }
-    if (value.length > 7) {
-      value = value.substring(0, 7) + "-" + value.substring(7);
-    }
+  const {modalConsulta, modalDisponivel, infoSchedule, salaSelecionada, idSala} = infoListSalas;
 
-    // Atualiza o valor do input
-    setInputValue(value);
+  // const [modalConsulta, setModalConsulta] = useState(false);
+  // const [modalDisponivel, setModalDisponivel] = useState(false);
+
+  // const [infoSchedule, setInfoSchedule] = useState({});
+  // const [salaSelecionada, setSalaSelecionada] = useState({});
+  // const [idSala, setIdSala] = useState("");
+
+  const formatInput = (value) => {
+    let text = value.replace(/[^0-9]/g, "");
+    if (text.length > 4) {
+      text = text.substring(0, 4) + "-" + text.substring(4);
+    }
+    if (text.length > 7) {
+      text = text.substring(0, 7) + "-" + text.substring(7);
+    }
+    return text;
+  };
+
+  const abrirModalConsulta = (item) => {
+    setInfoListSalas({...infoListSalas, SalaSelecionada : item});
+    setInfoListSalas({...infoListSalas, ModalConsulta : true});
   };
 
   useEffect(() => {
     getSalas();
-    console.log(salas + " salas");
   });
 
   async function getSalas() {
@@ -47,12 +63,24 @@ export default function ListaSalas() {
       console.log(error.response.data.error);
     }
   }
+  async function ConsultarReservas() {
+    await api.getConsulta({ sala: salaSelecionada, body: infoSchedule }).then(
+      (response) => {
+        console.log(response.data.available);
+        setInfoListSalas({...infoListSalas, IdSala : response.data.available});
+        setInfoListSalas({...infoListSalas, ModalDisponivel : true});
+      },
+      (error) => {
+        console.log(error);
+        Alert.alert(error.response.data.error);
+      }
+    );
+  }
 
   return (
     <View>
-      <Text>
-        Salas Disponíveis
-      </Text>
+      <Text>Salas Disponíveis:</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#ff0000" />
       ) : (
@@ -60,23 +88,21 @@ export default function ListaSalas() {
           data={salas}
           keyExtractor={(item) => item.number.toString()}
           renderItem={({ item }) => (
-            <Box>
-              <Text>Número: </Text>
-              <Text>{item.number}</Text>
-              <Text>Capacidade: </Text>
-              <Text>{item.capacity}</Text>
-              <Text>Descrição: </Text>
-              <Text>{item.description}</Text>
-              <TouchableOpacity onPress={() => setModalVisible(true)}>
-                Conferir Disponibilidade
+            <View>
+              <Text>Número: {item.number}</Text>
+              <Text>Capacidade: {item.capacity}</Text>
+              <Text>Descrição: {item.description}</Text>
+              <TouchableOpacity onPress={() => abrirModalConsulta(item)}>
+                <Text>Conferir Disponibilidade</Text>
               </TouchableOpacity>
-            </Box>
+            </View>
           )}
         />
       )}
+
       <Modal
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={modalConsulta}
+        onRequestClose={() => setInfoListSalas({...infoListSalas, ModalConsulta : false})}
         animationType="slide"
       >
         <View>
@@ -87,29 +113,65 @@ export default function ListaSalas() {
             placeholderTextColor="#000000"
             value={infoSchedule.weekStart}
             onChangeText={(value) => {
-              setInfoSchedule({ ...infoSchedule, value: weekStart });
+              const text = formatInput(value);
+              setInfoListSalas({...infoListSalas, InfoSchedule : { ...infoSchedule, weekStart: text }});
             }}
             keyboardType="numeric"
             maxLength={10}
-            onFocus={() => setFocusedInput("weekStart")}
-            onBlur={() => setFocusedInput(null)}
           />
           <TextInput
             placeholder="Digite o ultimo dia da semana (um Sábado): *"
             placeholderTextColor="#000000"
             value={infoSchedule.weekEnd}
             onChangeText={(value) => {
-              setInfoSchedule({ ...infoSchedule, value: weekEnd });
+              const text = formatInput(value);
+              setInfoListSalas({...infoListSalas, InfoSchedule : { ...infoSchedule, weekEnd: text }});
             }}
             keyboardType="numeric"
             maxLength={10}
-            onFocus={() => setFocusedInput("weekEnd")}
-            onBlur={() => setFocusedInput(null)}
           />
           <TouchableOpacity
-            onPress={() => setModalVisible(false)}
-          >Fechar</TouchableOpacity>
+            style={{ backgroundColor: "green" }}
+            onPress={() => ConsultarReservas()}
+          >
+            <Text>Consultar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ backgroundColor: "red" }}
+            onPress={() => setModalConsulta(false)}
+          >
+            <Text>Fechar</Text>
+          </TouchableOpacity>
         </View>
+      </Modal>
+      <Modal
+        visible={modalDisponivel}
+        onRequestClose={() => setModalDisponivel(false)}
+        animationType="fade"
+      >
+        <FlatList
+          data={idSala}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View>
+              <Text>Horários Disponíveis:</Text>
+              <Text>Segunda-feira: {item.Seg}</Text>
+              <Text>Terça-feira: {item.Ter}</Text>
+              <Text>Quarta-feira: {item.Qua}</Text>
+              <Text>Quinta-feira: {item.Qui}</Text>
+              <Text>Sexta-feira: {item.Sex}</Text>
+              <Text>Sábado: {item.Sab}</Text>
+              <Text>Sala: {salaSelecionada}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("Reservar",       )
+                }
+              >
+                <Text>Reserve-a Agora</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        />
       </Modal>
     </View>
   );
