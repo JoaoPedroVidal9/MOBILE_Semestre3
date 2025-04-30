@@ -21,6 +21,7 @@ export default function Cadastro({ navigation }) {
     showPassword: true,
     showPassword2: true,
   });
+  const [focusedInput, setFocusedInput] = useState(null);
 
   async function handleCadastro() {
     await api.postCadastro(user).then(

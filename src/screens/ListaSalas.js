@@ -14,25 +14,14 @@ export default function ListaSalas({ navigation }) {
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [infoListSalas, setInfoListSalas] = useState({
-    modalConsulta: false,
-    modalDisponivel: false,
-    infoSchedule: {
-      weekStart: "1990-01-01",
-      weekEnd: "1990-01-01",
-    },
-    salaSelecionada:{},
-    idSala:"",
-  });
 
-  const {modalConsulta, modalDisponivel, infoSchedule, salaSelecionada, idSala} = infoListSalas;
 
-  // const [modalConsulta, setModalConsulta] = useState(false);
-  // const [modalDisponivel, setModalDisponivel] = useState(false);
+  const [modalConsulta, setModalConsulta] = useState(false);
+  const [modalDisponivel, setModalDisponivel] = useState(false);
 
-  // const [infoSchedule, setInfoSchedule] = useState({});
-  // const [salaSelecionada, setSalaSelecionada] = useState({});
-  // const [idSala, setIdSala] = useState("");
+  const [infoSchedule, setInfoSchedule] = useState({ weekStart:'1990-01-01', weekEnd:'1990-01-01'});
+  const [salaSelecionada, setSalaSelecionada] = useState({});
+  const [idSala, setIdSala] = useState("");
 
   const formatInput = (value) => {
     let text = value.replace(/[^0-9]/g, "");
@@ -46,13 +35,13 @@ export default function ListaSalas({ navigation }) {
   };
 
   const abrirModalConsulta = (item) => {
-    setInfoListSalas({...infoListSalas, SalaSelecionada : item});
-    setInfoListSalas({...infoListSalas, ModalConsulta : true});
+    setSalaSelecionada(item);
+    setModalConsulta(true);
   };
 
   useEffect(() => {
     getSalas();
-  });
+  }, []);
 
   async function getSalas() {
     try {
@@ -64,14 +53,15 @@ export default function ListaSalas({ navigation }) {
     }
   }
   async function ConsultarReservas() {
-    await api.getConsulta({ sala: salaSelecionada, body: infoSchedule }).then(
+    console.log(salaSelecionada.number,{weekEnd:infoSchedule.weekEnd,weekStart:infoSchedule.weekStart });
+    await api.getConsulta(salaSelecionada.number,{weekEnd:infoSchedule.weekEnd,weekStart:infoSchedule.weekStart }).then(
       (response) => {
         console.log(response.data.available);
-        setInfoListSalas({...infoListSalas, IdSala : response.data.available});
-        setInfoListSalas({...infoListSalas, ModalDisponivel : true});
+        setIdSala = response.data.available;
+        setModalDisponivel(true);
       },
       (error) => {
-        console.log(error);
+        console.log(error.response.data.error);
         Alert.alert(error.response.data.error);
       }
     );
@@ -102,7 +92,7 @@ export default function ListaSalas({ navigation }) {
 
       <Modal
         visible={modalConsulta}
-        onRequestClose={() => setInfoListSalas({...infoListSalas, ModalConsulta : false})}
+        onRequestClose={() => setModalConsulta(false)}
         animationType="slide"
       >
         <View>
@@ -114,7 +104,7 @@ export default function ListaSalas({ navigation }) {
             value={infoSchedule.weekStart}
             onChangeText={(value) => {
               const text = formatInput(value);
-              setInfoListSalas({...infoListSalas, InfoSchedule : { ...infoSchedule, weekStart: text }});
+              setInfoSchedule({ ...infoSchedule, weekStart: text });
             }}
             keyboardType="numeric"
             maxLength={10}
@@ -125,7 +115,7 @@ export default function ListaSalas({ navigation }) {
             value={infoSchedule.weekEnd}
             onChangeText={(value) => {
               const text = formatInput(value);
-              setInfoListSalas({...infoListSalas, InfoSchedule : { ...infoSchedule, weekEnd: text }});
+              setInfoSchedule({ ...infoSchedule, weekEnd: text });
             }}
             keyboardType="numeric"
             maxLength={10}
@@ -164,7 +154,7 @@ export default function ListaSalas({ navigation }) {
               <Text>Sala: {salaSelecionada}</Text>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate("Reservar",       )
+                  navigation.navigate("Reservar",)
                 }
               >
                 <Text>Reserve-a Agora</Text>
