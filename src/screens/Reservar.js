@@ -48,7 +48,7 @@ export default function Reservar() {
         <View
           style={[
             styles.Container,
-            { borderColor: focusedInput === "name" ? "#af2e2e" : "#000000" },
+            { borderColor: focusedInput === "user" ? "#af2e2e" : "#000000" },
           ]}
         >
           <TextInput

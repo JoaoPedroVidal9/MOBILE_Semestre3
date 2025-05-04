@@ -29,7 +29,8 @@ const sheets =  {
     postLogin: (user) => api.post("user/login", user),
     postCadastro: (user) => api.post("user", user),
     getSalas: () =>api.get("classroom"),
-    postConsulta: (body) =>api.post(`schedule/available/`, body)
+    postConsulta: (body) =>api.post(`schedule/available/`, body),
+    postReserva: (body) =>api.post('schedule/', body),
 }
 
 export default sheets
