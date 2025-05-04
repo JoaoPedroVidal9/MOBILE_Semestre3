@@ -2,6 +2,7 @@ import LoginScreen from "./screens/Login";
 import CadastroScreen from "./screens/Cadastro";
 import LayoutMenu from "./components/LayoutMenu";
 import ListaSalas from "./screens/ListaSalas";
+import Reservar from "./screens/Reservar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack"
 
@@ -19,6 +20,11 @@ export default function App() {
           <LayoutMenu>
           <ListaSalas/>
           </LayoutMenu>
+          }/>
+          <Stack.Screen name="Reservar" component={()=>
+            <LayoutMenu>
+              <Reservar/>
+            </LayoutMenu>
           }/>
       </Stack.Navigator>
     </NavigationContainer> 

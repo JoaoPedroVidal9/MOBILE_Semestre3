@@ -16,7 +16,7 @@ export default function LayoutMenu({ children }) {
       <View style={estilos.fundoDoUser}>
         <TouchableOpacity style={estilos.logoUser} >
           <IoniconsUser
-            style={estilos.azul}
+            style={estilos.logoBurger}
             name="person"
             size={24}
             color="black"
@@ -59,7 +59,7 @@ const estilos = StyleSheet.create({
     borderRadius:"100%",
   },
 
-  azul:{
+  logoBurger:{
     paddingTop:13,
     paddingLeft:13.4,
     width:"50",

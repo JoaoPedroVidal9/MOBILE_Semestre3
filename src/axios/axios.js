@@ -1,15 +1,36 @@
 import axios from "axios"
+import { AsyncStorage } from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-    baseURL: "http://10.89.240.71:5000/api/reservas/v1/", 
+    baseURL: "http://192.168.12.113:5000/api/reservas/v1/", 
     headers: {"accept": "application/json"}
 })
+api.interceptors.request.use(
+    async (config) => {
+      try {
+        const token = await AsyncStorage.getItem("jwt");
+  
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+  
+        return config;
+      } catch (error) {
+        return config; // ← garante que a requisição siga mesmo com erro
+      }
+    },
+    (error) => {
+      // Se algo der errado antes mesmo da função acima
+      return Promise.reject(error);
+    }
+  );
+  
 
 const sheets =  {
     postLogin: (user) => api.post("user/login", user),
     postCadastro: (user) => api.post("user", user),
     getSalas: () =>api.get("classroom"),
-    getConsulta: (sala, body) =>api.get(`schedule/available/${sala}`, body)
+    postConsulta: (body) =>api.post(`schedule/available/`, body)
 }
 
 export default sheets
