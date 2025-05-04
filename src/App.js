@@ -4,29 +4,31 @@ import LayoutMenu from "./components/LayoutMenu";
 import ListaSalas from "./screens/ListaSalas";
 import Reservar from "./screens/Reservar";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack"
-
+import { createStackNavigator } from "@react-navigation/stack";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-       screenOptions={{headerShown:false}}>
-        <Stack.Screen name="Login" component={LoginScreen}/>
-        <Stack.Screen name="Cadastro" component={CadastroScreen}/>
-        <Stack.Screen name="ListaSalas" component={()=>
-          <LayoutMenu>
-          <ListaSalas/>
-          </LayoutMenu>
-          }/>
-          <Stack.Screen name="Reservar" component={()=>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Cadastro" component={CadastroScreen} />
+        <Stack.Screen
+          name="ListaSalas">{() => (
             <LayoutMenu>
-              <Reservar/>
+              <ListaSalas navigation={navigation}/>
             </LayoutMenu>
-          }/>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Reservar">
+          {({ route, navigation }) => (
+            <LayoutMenu>
+              <Reservar route={route} navigation={navigation} />
+            </LayoutMenu>
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
-    </NavigationContainer> 
-  )
+    </NavigationContainer>
+  );
 }

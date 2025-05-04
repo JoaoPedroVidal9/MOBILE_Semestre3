@@ -18,7 +18,7 @@ export default function Login({ navigation }) {
                 (response) => {
                     console.log(response.data.message);
                     Alert.alert(response.data.message)
-                    navigation.navigate("Reservar");
+                    navigation.navigate("ListaSalas");
                 },
                 (error) => {
                     console.log(error.response.data.error);

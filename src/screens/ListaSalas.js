@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
-  StyleSheet
+  StyleSheet,
+  Alert,
 } from "react-native";
 
 export default function ListaSalas({ navigation }) {
@@ -18,9 +19,12 @@ export default function ListaSalas({ navigation }) {
   const [modalConsulta, setModalConsulta] = useState(false);
   const [modalDisponivel, setModalDisponivel] = useState(false);
 
-  const [infoSchedule, setInfoSchedule] = useState({ weekStart: '1990-01-01', weekEnd: '1990-01-01' });
+  const [infoSchedule, setInfoSchedule] = useState({
+    weekStart: "",
+    weekEnd: "",
+  });
   const [salaSelecionada, setSalaSelecionada] = useState({});
-  const [idSala, setIdSala] = useState({});
+  const [idSala, setIdSala] = useState();
 
   const formatInput = (value) => {
     let text = value.replace(/[^0-9]/g, "");
@@ -34,7 +38,7 @@ export default function ListaSalas({ navigation }) {
   };
 
   const abrirModalConsulta = (item) => {
-    setSalaSelecionada(item);
+    setSalaSelecionada(item.number);
     setModalConsulta(true);
   };
 
@@ -52,20 +56,25 @@ export default function ListaSalas({ navigation }) {
     }
   }
   async function ConsultarReservas() {
-    setModalDisponivel(true);
-    await api.getConsulta({ weekStart: infoSchedule.weekStart, weekEnd: infoSchedule.weekEnd, classroomID:salaSelecionada.number }).then(
-      (response) => {
-        console.log(response.data.available);
-        setIdSala = response.data.available;
-        setModalDisponivel(true);
-      },
-      (error) => {
-        console.log(error.response.data.error);
-        Alert.alert(error.response.data.error);
-        setModalDisponivel(true);
-      }
-      
-    );
+    await api
+      .postConsulta({
+        weekStart: infoSchedule.weekStart,
+        weekEnd: infoSchedule.weekEnd,
+        classroomID: salaSelecionada.number,
+      })
+      .then(
+        (response) => {
+          setIdSala(response.data.available);
+          console.log(response.data.available);
+          console.log(modalDisponivel);
+          console.log(JSON.stringify(idSala) + "teste");
+          setModalDisponivel(true);
+        },
+        (error) => {
+          console.log(error.response.data.error);
+          Alert.alert(error.response.data.error);
+        }
+      );
   }
 
   return (
@@ -75,18 +84,18 @@ export default function ListaSalas({ navigation }) {
       {loading ? (
         <ActivityIndicator size="large" color="#ff0000" />
       ) : (
-
         <FlatList
           data={salas}
           keyExtractor={(item) => item.number.toString()}
           renderItem={({ item }) => (
-            <View
-              style={styles.listagem}
-            >
+            <View style={styles.listagem}>
               <Text>Número: {item.number}</Text>
               <Text>Capacidade: {item.capacity}</Text>
               <Text>Descrição: {item.description}</Text>
-              <TouchableOpacity style={styles.botao} onPress={() => abrirModalConsulta(item)}>
+              <TouchableOpacity
+                style={styles.botao}
+                onPress={() => abrirModalConsulta(item)}
+              >
                 <Text>Conferir Disponibilidade</Text>
               </TouchableOpacity>
             </View>
@@ -100,13 +109,17 @@ export default function ListaSalas({ navigation }) {
         animationType="slide"
       >
         <View style={styles.modalCons}>
-          <Text style={{
-            margin: 10,
-          }}>Consultar Disponibilidade:</Text>
+          <Text
+            style={{
+              margin: 10,
+            }}
+          >
+            Consultar Disponibilidade:
+          </Text>
           <Text>Selecione os dias para consultar a semana:</Text>
           <TextInput
             style={styles.inputData}
-            placeholder="Digite o primeiro dia da semana (uma Segunda-feira): *"
+            placeholder="Digite o primeiro dia (Segunda-feira): *"
             placeholderTextColor="#000000"
             value={infoSchedule.weekStart}
             onChangeText={(value) => {
@@ -118,7 +131,7 @@ export default function ListaSalas({ navigation }) {
           />
           <TextInput
             style={styles.inputData}
-            placeholder="Digite o ultimo dia da semana (um Sábado): *"
+            placeholder="Digite o ultimo dia (Sábado): *"
             placeholderTextColor="#000000"
             value={infoSchedule.weekEnd}
             onChangeText={(value) => {
@@ -128,9 +141,7 @@ export default function ListaSalas({ navigation }) {
             keyboardType="numeric"
             maxLength={10}
           />
-          <View
-            style={styles.botoesLayout}
-          >
+          <View style={styles.botoesLayout}>
             <TouchableOpacity
               style={styles.denyBut}
               onPress={() => setModalConsulta(false)}
@@ -146,35 +157,46 @@ export default function ListaSalas({ navigation }) {
           </View>
         </View>
       </Modal>
+
       <Modal
         visible={modalDisponivel}
         onRequestClose={() => setModalDisponivel(false)}
         animationType="fade"
       >
-        {!idSala ? (<Text>Espera</Text>):(
-        <FlatList
-          data={idSala}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View>
-              <Text>Horários Disponíveis:</Text>
-              <Text>Segunda-feira: {item.Seg}</Text>
-              <Text>Terça-feira: {item.Ter}</Text>
-              <Text>Quarta-feira: {item.Qua}</Text>
-              <Text>Quinta-feira: {item.Qui}</Text>
-              <Text>Sexta-feira: {item.Sex}</Text>
-              <Text>Sábado: {item.Sab}</Text>
-              <Text>Sala: {salaSelecionada}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("Reservar", [salaSelecionada, navigation])
-                }
-              >
-                <Text>Reserve-a Agora</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
+        {!idSala ? (
+          <Text>Espera</Text>
+        ) : (
+          <View style={styles.modalCons}>
+            <Text>Horários Disponíveis:</Text>
+            <Text>Segunda-feira:</Text>
+            <Text>{idSala.Seg}</Text>
+            <Text>Terça-feira:</Text>
+            <Text>{idSala.Ter}</Text>
+            <Text>Quarta-feira:</Text>
+            <Text>{idSala.Qua}</Text>
+            <Text>Quinta-feira:</Text>
+            <Text>{idSala.Qui}</Text>
+            <Text>Sexta-feira:</Text>
+            <Text>{idSala.Sex}</Text>
+            <Text>Sábado:</Text>
+            <Text>{idSala.Sab}</Text>
+            <Text>Sala: {salaSelecionada}</Text>
+            <TouchableOpacity
+              style={styles.confirmBut}
+              onPress={() =>
+                navigation.navigate("Reservar", { salaSelecionada })
+              }
+            >
+              <Text>Reserve-a Agora</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.denyBut}
+              onPress={() => setModalDisponivel(false)}
+            >
+              <Text>Fechar</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </Modal>
     </View>
@@ -186,7 +208,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   listagem: {
     display: "flex",
@@ -197,12 +219,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   botao: {
-    display: 'flex',
+    display: "flex",
     alignItems: "center",
     backgroundColor: "#FF6666",
     textAlign: "center",
     borderRadius: 10,
-    width: "70%"
+    width: "70%",
   },
   modalCons: {
     display: "flex",
@@ -217,19 +239,19 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#FFFFFF",
     margin: 10,
-    width: "70%"
+    width: "70%",
   },
   confirmBut: {
-    display:"flex",
-    alignItems:"center",
+    display: "flex",
+    alignItems: "center",
     backgroundColor: "#66FF66",
     width: "40%",
     margin: 10,
     borderRadius: 10,
   },
   denyBut: {
-    display:"flex",
-    alignItems:"center",
+    display: "flex",
+    alignItems: "center",
     backgroundColor: "#FF6666",
     width: "40%",
     margin: 10,
@@ -239,7 +261,12 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     width: "100%",
-    justifyContent: 'space-evenly',
+    justifyContent: "space-evenly",
     margin: 10,
-  }
-})
+  },
+  viewHorarios: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+});

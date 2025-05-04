@@ -16,11 +16,10 @@ api.interceptors.request.use(
   
         return config;
       } catch (error) {
-        return config; // ← garante que a requisição siga mesmo com erro
+        return config; 
       }
     },
     (error) => {
-      // Se algo der errado antes mesmo da função acima
       return Promise.reject(error);
     }
   );

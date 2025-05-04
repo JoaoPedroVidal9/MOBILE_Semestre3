@@ -8,10 +8,12 @@ import {
   StyleSheet,
 } from "react-native";
 import api from "../axios/axios";
-import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function Reservar({ route }) {
-  const [salaSelecionada, navigation] = route.params[(0, 1)];
+export default function Reservar() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const salaSelecionada = route.params;
 
   const [schedule, setSchedule] = useState({
     user: "",
