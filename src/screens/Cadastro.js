@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
+import { AsyncStorage } from "react-native";
 
 export default function Cadastro({ navigation }) {
   const [user, setUser] = useState({
@@ -28,7 +29,8 @@ export default function Cadastro({ navigation }) {
       (response) => {
         console.log(response.data.message);
         Alert.alert(response.data.message);
-        navigation.navigate("ListaSalas");
+        AsyncStorage.setItem(token, response.data.token);
+        navigation.navigate("ListaSalas", user.cpf);
       },
       (error) => {
         console.log(error);

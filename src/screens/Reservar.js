@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,25 @@ import {
   StyleSheet,
 } from "react-native";
 import api from "../axios/axios";
-import { useNavigation, useRoute } from '@react-navigation/native';
+import DropDownPicker from "react-native-dropdown-picker";
 
-export default function Reservar() {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const salaSelecionada = route.params;
+export default function Reservar({ navigation, route }) {
+  const salaSelecionada = route.params.salaSelecionada;
+  const userId = route.params.userId;
+
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState([]);
+  const [items, setItems] = useState([
+    { label: "Seg", value: "Seg" },
+    { label: "Ter", value: "Ter" },
+    { label: "Qua", value: "Qua" },
+    { label: "Qui", value: "Qui" },
+    { label: "Sex", value: "Sex" },
+    { label: "Sab", value: "Sab" },
+  ]);
 
   const [schedule, setSchedule] = useState({
-    user: "",
+    user: userId,
     dateStart: "",
     dateEnd: "",
     days: "",
@@ -26,14 +36,47 @@ export default function Reservar() {
   });
   const [focusedInput, setFocusedInput] = useState(null);
 
+  const formatInputData = (value) => {
+    let text = value.replace(/[^0-9]/g, "");
+    if (text.length > 4) {
+      text = text.substring(0, 4) + "-" + text.substring(4);
+    }
+    if (text.length > 7) {
+      text = text.substring(0, 7) + "-" + text.substring(7);
+    }
+    return text;
+  };
+
+  const formatInputHora = (value) => {
+    let text = value.replace(/[^0-9]/g, "");
+    if (text.length > 2) {
+      text = text.substring(0, 2) + ":" + text.substring(2);
+    }
+    return text;
+  };
+
+  useEffect(() => {
+    setSchedule((prev) => ({
+      ...prev,
+      days: value,
+    }));
+  }, [value]);
+
+  const selectedLabels = Array.isArray(value)
+    ? value
+        .map((val) => items.find((item) => item.value === val)?.label)
+        .filter(Boolean)
+    : [];
+
   async function handleReserva() {
     await api.postReserva(schedule).then(
       (response) => {
         console.log(response.data.message);
         Alert.alert(response.data.message);
-        navigation.navigate("ListaSalas");
+        navigation.navigate("ListaSalas", userId);
       },
       (error) => {
+        console.log(schedule);
         console.log(error);
         Alert.alert(error.response.data.error);
       }
@@ -46,57 +89,28 @@ export default function Reservar() {
         <Text style={styles.Text}>Faça sua reserva:</Text>
 
         <View
-          style={[
-            styles.Container,
-            { borderColor: focusedInput === "user" ? "#af2e2e" : "#000000" },
-          ]}
+          style={{
+            borderColor: focusedInput === "days" ? "#af2e2e" : "#000000",
+            marginBottom: "20",
+            color: "#000000",
+            fontSize: 12,
+            width: "100%",
+            marginRight: "10",
+          }}
         >
-          <TextInput
-            placeholder="Digite seu codigo de usuário"
-            value={schedule.user}
+          <DropDownPicker
             style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => setSchedule({ ...schedule, user: value })}
-            onFocus={() => setFocusedInput("user")}
-            onBlur={() => setFocusedInput(null)}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            { borderColor: focusedInput === "days" ? "#af2e2e" : "#000000" },
-          ]}
-        >
-          <TextInput
-            placeholder="Selecione os dias da semana"
-            value={schedule.days}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => setSchedule({ ...schedule, days: value })}
-            onFocus={() => setFocusedInput("days")}
-            onBlur={() => setFocusedInput(null)}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            {
-              borderColor: focusedInput === "classroom" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Digite a sala a reservar"
-            value={schedule.classroom}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) =>
-              setSchedule({ ...schedule, classroom: value })
-            }
-            onFocus={() => setFocusedInput("classroom")}
-            onBlur={() => setFocusedInput(null)}
+            multiple={true}
+            min={1}
+            max={6}
+            open={open}
+            value={value}
+            items={items}
+            setOpen={setOpen}
+            setValue={setValue}
+            setItems={setItems}
+            placeholder="Escolha os dias da semana"
+            // multipleText={(selectedItems) => String(selectedItems.join(", "))} 
           />
         </View>
 
@@ -113,13 +127,15 @@ export default function Reservar() {
             value={schedule.dateStart}
             style={styles.input}
             placeholderTextColor="#000000"
-            onChangeText={(value) =>
-              setSchedule({ ...schedule, dateStart: value })
-            }
+            onChangeText={(value) => {
+              const text = formatInputData(value);
+              setSchedule({ ...schedule, dateStart: text });
+            }}
             onFocus={() => setFocusedInput("dateStart")}
             onBlur={() => setFocusedInput(null)}
+            keyboardType="numeric"
+            maxLength={10}
           />
-          {/* const { dateEnd, classroom, timeStart, timeEnd } = req.body; */}
         </View>
 
         <View
@@ -135,11 +151,14 @@ export default function Reservar() {
             value={schedule.dateEnd}
             style={styles.input}
             placeholderTextColor="#000000"
-            onChangeText={(value) =>
-              setSchedule({ ...schedule, dateEnd: value })
-            }
+            onChangeText={(value) => {
+              const text = formatInputData(value);
+              setSchedule({ ...schedule, dateEnd: text });
+            }}
             onFocus={() => setFocusedInput("dateEnd")}
             onBlur={() => setFocusedInput(null)}
+            keyboardType="numeric"
+            maxLength={10}
           />
         </View>
         <View
@@ -155,11 +174,14 @@ export default function Reservar() {
             value={schedule.timeStart}
             style={styles.input}
             placeholderTextColor="#000000"
-            onChangeText={(value) =>
-              setSchedule({ ...schedule, timeStart: value })
-            }
+            onChangeText={(value) => {
+              const text = formatInputHora(value);
+              setSchedule({ ...schedule, timeStart: text });
+            }}
             onFocus={() => setFocusedInput("timeStart")}
             onBlur={() => setFocusedInput(null)}
+            keyboardType="numeric"
+            maxLength={5}
           />
         </View>
 
@@ -176,11 +198,14 @@ export default function Reservar() {
             value={schedule.timeEnd}
             style={styles.input}
             placeholderTextColor="#000000"
-            onChangeText={(value) =>
-              setSchedule({ ...schedule, timeEnd: value })
-            }
+            onChangeText={(value) => {
+              const text = formatInputHora(value);
+              setSchedule({ ...schedule, timeEnd: text });
+            }}
             onFocus={() => setFocusedInput("timeEnd")}
             onBlur={() => setFocusedInput(null)}
+            keyboardType="numeric"
+            maxLength={5}
           />
         </View>
       </View>
@@ -224,12 +249,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     borderWidth: 1, //Espessura da borda
-    padding: 12,
+    padding: 8,
     borderRadius: 10,
   },
   input: {
     color: "#000000",
-    fontSize: 16,
+    fontSize: 12,
     width: "100%",
   },
   Container2: {

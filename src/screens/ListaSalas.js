@@ -10,9 +10,15 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  ScrollView
 } from "react-native";
 
-export default function ListaSalas({ navigation }) {
+export default function ListaSalas({ navigation, route }) {
+  const [rota, setRota] = useState({
+    'userId':route.params,
+    'salaSelecionada': "",
+  })
+
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,8 +29,9 @@ export default function ListaSalas({ navigation }) {
     weekStart: "",
     weekEnd: "",
   });
-  const [salaSelecionada, setSalaSelecionada] = useState({});
   const [idSala, setIdSala] = useState();
+
+  const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
   const formatInput = (value) => {
     let text = value.replace(/[^0-9]/g, "");
@@ -38,7 +45,7 @@ export default function ListaSalas({ navigation }) {
   };
 
   const abrirModalConsulta = (item) => {
-    setSalaSelecionada(item.number);
+    setRota({...rota, 'salaSelecionada':item.number});
     setModalConsulta(true);
   };
 
@@ -60,17 +67,19 @@ export default function ListaSalas({ navigation }) {
       .postConsulta({
         weekStart: infoSchedule.weekStart,
         weekEnd: infoSchedule.weekEnd,
-        classroomID: salaSelecionada.number,
+        classroomID: rota.salaSelecionada,
       })
       .then(
         (response) => {
           setIdSala(response.data.available);
-          console.log(response.data.available);
-          console.log(modalDisponivel);
-          console.log(JSON.stringify(idSala) + "teste");
           setModalDisponivel(true);
         },
         (error) => {
+          console.log(
+            infoSchedule.weekStart,
+            infoSchedule.weekEnd,
+            rota.salaSelecionada.number
+          );
           console.log(error.response.data.error);
           Alert.alert(error.response.data.error);
         }
@@ -168,24 +177,18 @@ export default function ListaSalas({ navigation }) {
         ) : (
           <View style={styles.modalCons}>
             <Text>Horários Disponíveis:</Text>
-            <Text>Segunda-feira:</Text>
-            <Text>{idSala.Seg}</Text>
-            <Text>Terça-feira:</Text>
-            <Text>{idSala.Ter}</Text>
-            <Text>Quarta-feira:</Text>
-            <Text>{idSala.Qua}</Text>
-            <Text>Quinta-feira:</Text>
-            <Text>{idSala.Qui}</Text>
-            <Text>Sexta-feira:</Text>
-            <Text>{idSala.Sex}</Text>
-            <Text>Sábado:</Text>
-            <Text>{idSala.Sab}</Text>
-            <Text>Sala: {salaSelecionada}</Text>
+            <ScrollView>
+              {diasSemana.map((dia) => (
+                <Text key={dia} style={{ marginBottom: 10 }}>
+                  {dia}: {idSala[dia].join(`, ` )}
+                </Text>
+              ))}
+            </ScrollView>
+
+            <Text>Sala: {rota.salaSelecionada}</Text>
             <TouchableOpacity
               style={styles.confirmBut}
-              onPress={() =>
-                navigation.navigate("Reservar", { salaSelecionada })
-              }
+              onPress={()=>{navigation.navigate("Reservar", rota);}}
             >
               <Text>Reserve-a Agora</Text>
             </TouchableOpacity>
@@ -267,6 +270,6 @@ const styles = StyleSheet.create({
   viewHorarios: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    justifyContent: "center",
   },
 });

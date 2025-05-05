@@ -17,8 +17,8 @@ export default function Login({ navigation }) {
             .then(
                 (response) => {
                     console.log(response.data.message);
-                    Alert.alert(response.data.message)
-                    navigation.navigate("ListaSalas");
+                    Alert.alert(response.data.message);
+                    navigation.navigate("ListaSalas", user.cpf);
                 },
                 (error) => {
                     console.log(error.response.data.error);

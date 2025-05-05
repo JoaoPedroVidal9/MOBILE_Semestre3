@@ -15,9 +15,9 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Cadastro" component={CadastroScreen} />
         <Stack.Screen
-          name="ListaSalas">{() => (
+          name="ListaSalas">{({navigation, route}) => (
             <LayoutMenu>
-              <ListaSalas navigation={navigation}/>
+              <ListaSalas navigation={navigation} route={route} />
             </LayoutMenu>
           )}
         </Stack.Screen>
