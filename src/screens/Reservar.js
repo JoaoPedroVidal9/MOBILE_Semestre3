@@ -62,22 +62,13 @@ export default function Reservar({ navigation, route }) {
     }));
   }, [value]);
 
-  const selectedLabels = Array.isArray(value)
-    ? value
-        .map((val) => items.find((item) => item.value === val)?.label)
-        .filter(Boolean)
-    : [];
-
   async function handleReserva() {
     await api.postReserva(schedule).then(
       (response) => {
-        console.log(response.data.message);
         Alert.alert(response.data.message);
         navigation.navigate("ListaSalas", userId);
       },
       (error) => {
-        console.log(schedule);
-        console.log(error);
         Alert.alert(error.response.data.error);
       }
     );
@@ -110,7 +101,6 @@ export default function Reservar({ navigation, route }) {
             setValue={setValue}
             setItems={setItems}
             placeholder="Escolha os dias da semana"
-            // multipleText={(selectedItems) => String(selectedItems.join(", "))} 
           />
         </View>
 
@@ -212,7 +202,7 @@ export default function Reservar({ navigation, route }) {
 
       <View style={styles.viewNavigate}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("ListaSalas")}
+          onPress={() => navigation.navigate("ListaSalas", userId)}
           style={styles.buttonColor1}
         >
           <Text style={styles.TextNavigate1}>Voltar</Text>

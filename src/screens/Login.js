@@ -16,12 +16,10 @@ export default function Login({ navigation }) {
         await api.postLogin(user)
             .then(
                 (response) => {
-                    console.log(response.data.message);
                     Alert.alert(response.data.message);
                     navigation.navigate("ListaSalas", user.cpf);
                 },
                 (error) => {
-                    console.log(error.response.data.error);
                     Alert.alert(error.response.data.error);
                 }
             );

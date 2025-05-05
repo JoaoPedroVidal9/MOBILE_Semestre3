@@ -27,13 +27,11 @@ export default function Cadastro({ navigation }) {
   async function handleCadastro() {
     await api.postCadastro(user).then(
       (response) => {
-        console.log(response.data.message);
         Alert.alert(response.data.message);
         AsyncStorage.setItem(token, response.data.token);
         navigation.navigate("ListaSalas", user.cpf);
       },
       (error) => {
-        console.log(error);
         Alert.alert(error.response.data.error);
       }
     );

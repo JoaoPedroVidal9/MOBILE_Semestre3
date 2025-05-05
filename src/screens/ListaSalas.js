@@ -25,11 +25,11 @@ export default function ListaSalas({ navigation, route }) {
   const [modalConsulta, setModalConsulta] = useState(false);
   const [modalDisponivel, setModalDisponivel] = useState(false);
 
+  const [idSala, setIdSala] = useState();
   const [infoSchedule, setInfoSchedule] = useState({
     weekStart: "",
     weekEnd: "",
   });
-  const [idSala, setIdSala] = useState();
 
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
@@ -59,7 +59,7 @@ export default function ListaSalas({ navigation, route }) {
       setSalas(response.data.classrooms);
       setLoading(false);
     } catch (error) {
-      console.log(error.response.data.error);
+      console.log(error.response.data.error); // Caso não puxe as salas, permanece carregando.
     }
   }
   async function ConsultarReservas() {
@@ -75,12 +75,6 @@ export default function ListaSalas({ navigation, route }) {
           setModalDisponivel(true);
         },
         (error) => {
-          console.log(
-            infoSchedule.weekStart,
-            infoSchedule.weekEnd,
-            rota.salaSelecionada.number
-          );
-          console.log(error.response.data.error);
           Alert.alert(error.response.data.error);
         }
       );
@@ -140,7 +134,7 @@ export default function ListaSalas({ navigation, route }) {
           />
           <TextInput
             style={styles.inputData}
-            placeholder="Digite o ultimo dia (Sábado): *"
+            placeholder="Digite o último dia (Domingo): *"
             placeholderTextColor="#000000"
             value={infoSchedule.weekEnd}
             onChangeText={(value) => {
