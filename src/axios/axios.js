@@ -2,7 +2,7 @@ import axios from "axios"
 import { AsyncStorage } from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-    baseURL: "http://10.89.240.71:5000/api/reservas/v1/", 
+    baseURL: "http://10.89.240.75:5000/api/reservas/v3/", 
     headers: {"accept": "application/json"}
 })
 api.interceptors.request.use(
@@ -28,9 +28,11 @@ api.interceptors.request.use(
 const sheets =  {
     postLogin: (user) => api.post("user/login", user),
     postCadastro: (user) => api.post("user", user),
-    getSalas: () =>api.get("classroom"),
-    postConsulta: (body) =>api.post(`schedule/available/`, body),
-    postReserva: (body) =>api.post('schedule/', body),
+    getSalas: () => api.get("classroom"),
+    postConsulta: (body) => api.post(`schedule/available/`, body),
+    postReserva: (body) => api.post('schedule/', body),
+    getListaReserva: (userId) => api.get(`schedule/user/${userId}`),
+    deleteReserva: (reservaId) => api.delete(`schedule/${reservaId}`),
 }
 
 export default sheets

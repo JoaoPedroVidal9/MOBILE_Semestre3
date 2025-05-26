@@ -28,8 +28,8 @@ export default function Cadastro({ navigation }) {
     await api.postCadastro(user).then(
       (response) => {
         Alert.alert(response.data.message);
-        AsyncStorage.setItem(token, response.data.token);
-        navigation.navigate("ListaSalas", user.cpf);
+        AsyncStorage.setItem("userId", user.cpf);
+        navigation.navigate("ListaReservas", user.cpf);
       },
       (error) => {
         Alert.alert(error.response.data.error);

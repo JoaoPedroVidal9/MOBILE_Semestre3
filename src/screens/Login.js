@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons"
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login({ navigation }) {
     const [user, setUser] = useState({
@@ -17,7 +18,8 @@ export default function Login({ navigation }) {
             .then(
                 (response) => {
                     Alert.alert(response.data.message);
-                    navigation.navigate("ListaSalas", user.cpf);
+                    AsyncStorage.setItem("userId", user.cpf);
+                    navigation.navigate("ListaReservas", user.cpf);
                 },
                 (error) => {
                     Alert.alert(error.response.data.error);
