@@ -1,15 +1,11 @@
-import { 
-  useEffect, 
-  useState 
-} from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  StyleSheet, 
-  Modal 
+import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
@@ -51,7 +47,7 @@ export default function ListaSalas({ navigation }) {
   async function cancelarReserva() {
     try {
       await api.deleteReserva(reservaSelecionada.id);
-      setReservas(reservas.filter(item => item.id !== reservaSelecionada.id));
+      setReservas(reservas.filter((item) => item.id !== reservaSelecionada.id));
       setModalVisible(false);
     } catch (error) {
       console.log("Erro ao cancelar reserva:", error);
@@ -60,10 +56,11 @@ export default function ListaSalas({ navigation }) {
 
   return (
     <View style={styles.containerFlex}>
+
       <Text style={styles.titulo}>Salas Disponíveis:</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#ff0000" />
+        <Text>Nenhuma Reserva Encontrada</Text>
       ) : (
         <FlatList
           data={reservas}
@@ -87,28 +84,29 @@ export default function ListaSalas({ navigation }) {
               </Text>
 
               <View style={styles.botoesLayout}>
-                <TouchableOpacity style={styles.confirmBut}>
-                  <Text>Atualizar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.denyBut} 
+                <TouchableOpacity
+                  style={styles.denyBut}
                   onPress={() => abrirModalCancelar(item)}
                 >
                   <Text>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
+            
+            
           )}
+          
         />
+        
       )}
-
-      <TouchableOpacity 
-        style={styles.botaoFazerReserva} 
+      
+      <TouchableOpacity
+        style={styles.botaoFazerReserva}
         onPress={() => navigation.navigate("ListaSalas")}
       >
         <Text style={styles.textoBotao}>Fazer Reserva</Text>
       </TouchableOpacity>
+
 
       {/* Modal de Confirmação */}
       <Modal
@@ -119,18 +117,18 @@ export default function ListaSalas({ navigation }) {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={{textAlign: "center", marginBottom: 20}}>
+            <Text style={{ textAlign: "center", marginBottom: 20 }}>
               Você tem certeza que deseja cancelar essa reserva?
             </Text>
             <View style={styles.botoesLayout}>
-              <TouchableOpacity 
-                style={styles.confirmBut} 
+              <TouchableOpacity
+                style={styles.confirmBut}
                 onPress={cancelarReserva}
               >
                 <Text>Sim</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.denyBut} 
+              <TouchableOpacity
+                style={styles.denyBut}
                 onPress={() => setModalVisible(false)}
               >
                 <Text>Não</Text>
@@ -149,9 +147,8 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
     padding: 10,
-    height: "100%",
+    height: "80%",
   },
   titulo: {
     fontSize: 18,
@@ -165,7 +162,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000000",
     padding: 10,
-    width: "95%",
+    width: "100%",
     marginBottom: 10,
   },
   textoCentral: {
@@ -198,15 +195,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     marginTop: 10,
+    width: "100%",
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#DDDDDD",
     padding: 20,
     borderRadius: 8,
     width: "80%",
@@ -214,12 +211,13 @@ const styles = StyleSheet.create({
     borderColor: "#000000",
   },
   botaoFazerReserva: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
     borderRadius: 8,
     alignSelf: "center",
-    marginTop: 20,
+    position: "absolute", // Posicionamento absoluto
+    bottom: 20, // Distância da parte inferior
   },
   textoBotao: {
     color: "#FFFFFF",
