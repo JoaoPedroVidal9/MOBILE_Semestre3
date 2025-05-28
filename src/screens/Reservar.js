@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import DropDownPicker from "react-native-dropdown-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Reservar({ navigation, route }) {
   const salaSelecionada = route.params.salaSelecionada;
-  const userId = route.params.userId;
+
+  // Estado para armazenar o userId no componente
+  const [userId, setUserId] = useState(null);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([]);
@@ -25,6 +28,7 @@ export default function Reservar({ navigation, route }) {
     { label: "Sab", value: "Sab" },
   ]);
 
+  // Estado para a reserva
   const [schedule, setSchedule] = useState({
     user: userId,
     dateStart: "",
@@ -55,6 +59,34 @@ export default function Reservar({ navigation, route }) {
     return text;
   };
 
+  // Usando useEffect para buscar o userId do AsyncStorage
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        if (storedUserId !== null) {
+          setUserId(storedUserId); // Atualiza o userId no estado
+        } else {
+          console.log("Nenhum userId encontrado");
+        }
+      } catch (error) {
+        console.error("Erro ao recuperar o userId do AsyncStorage:", error);
+      }
+    };
+
+    getUserId(); // Chama a função para recuperar o userId
+  }, []); // O array vazio garante que a função seja chamada apenas uma vez na montagem
+
+  // Atualiza o estado 'schedule' quando o 'userId' for recuperado
+  useEffect(() => {
+    if (userId) {
+      setSchedule((prev) => ({
+        ...prev,
+        user: userId,
+      }));
+    }
+  }, [userId]); // Esse efeito roda sempre que o 'userId' mudar
+
   useEffect(() => {
     setSchedule((prev) => ({
       ...prev,
@@ -66,7 +98,7 @@ export default function Reservar({ navigation, route }) {
     await api.postReserva(schedule).then(
       (response) => {
         Alert.alert(response.data.message);
-        navigation.navigate("ListaSalas", userId);
+        navigation.navigate("ListaReserva", { userId });
       },
       (error) => {
         Alert.alert(error.response.data.error);
@@ -202,7 +234,7 @@ export default function Reservar({ navigation, route }) {
 
       <View style={styles.viewNavigate}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("ListaSalas", userId)}
+          onPress={() => navigation.navigate("ListaSalas", { userId })}
           style={styles.buttonColor1}
         >
           <Text style={styles.TextNavigate1}>Voltar</Text>
@@ -246,20 +278,6 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 12,
     width: "100%",
-  },
-  Container2: {
-    marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
-    paddingLeft: 12,
-    padding: 5,
-    borderRadius: 10,
-  },
-  inputPassword: {
-    color: "#000000",
-    fontSize: 16,
-    width: "90%",
   },
   viewNavigate: {
     display: "flex",
