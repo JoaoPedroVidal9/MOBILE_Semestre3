@@ -5,16 +5,16 @@ import IoniconsUser from "@expo/vector-icons/Ionicons";
 
 export default function LayoutMenu({ children }) {
   return (
-    <View style={{ flex: 1, justifyContent: "space-between" }}>
+    <View style={{ flex: 1}}>
       <View style={estilos.centralizarRow}>
         <TouchableOpacity>
           <IoniconsMenu name="menu" size={24} color="black" />
         </TouchableOpacity>
         <Image source={logo_senai} style={estilos.logosenai} />
       </View>
-      <View>{children}</View>
+      <View style={{height:"80%"}}>{children}</View>
       <View style={estilos.fundoDoUser}>
-        <TouchableOpacity style={estilos.logoUser} >
+        <TouchableOpacity style={estilos.fundoUser} >
           <IoniconsUser
             style={estilos.logoBurger}
             name="person"
@@ -32,27 +32,29 @@ const estilos = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "center"
+  },
+
+  
+
+  logosenai: {
+    width: 300,
+    height: 75,
+    margin:20
+    
   },
 
   fundoDoUser: {
     width:"50",
     height:"50",
-    margin:25,
+    marginLeft:"25",
     display:'flex',
     alignItems:"center",
     justifyContent:"center",
+    margin:25
   },
-
-  logosenai: {
-    width: 300,
-    height: 75,
-    margin: 25,
-    marginRight: 0,
-    
-  },
-
-  logoUser: {
+  
+  fundoUser: {
     backgroundColor: "#ff0000",
     width:"50",
     height:"50",
@@ -60,8 +62,8 @@ const estilos = StyleSheet.create({
   },
 
   logoBurger:{
-    paddingTop:13,
-    paddingLeft:13.4,
+    paddingTop:"25%",
+    paddingLeft:"27%",
     width:"50",
     height:"50",
   },

@@ -146,16 +146,16 @@ export default function ListaSalas({ navigation, route }) {
           />
           <View style={styles.botoesLayout}>
             <TouchableOpacity
-              style={styles.denyBut}
+              style={styles.buttonColor1}
               onPress={() => setModalConsulta(false)}
             >
               <Text>Fechar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.confirmBut}
+              style={styles.buttonColor2}
               onPress={() => ConsultarReservas()}
             >
-              <Text>Consultar</Text>
+              <Text style={{color:"white"}}>Consultar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -181,14 +181,14 @@ export default function ListaSalas({ navigation, route }) {
 
             <Text>Sala: {rota.salaSelecionada}</Text>
             <TouchableOpacity
-              style={styles.confirmBut}
+              style={styles.buttonColor2}
               onPress={()=>{navigation.navigate("Reservar", rota);}}
             >
-              <Text>Reserve-a Agora</Text>
+              <Text style={{color:"white"}}>Reserve-a Agora</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.denyBut}
+              style={styles.buttonColor1}
               onPress={() => setModalDisponivel(false)}
             >
               <Text>Fechar</Text>
@@ -209,23 +209,29 @@ const styles = StyleSheet.create({
   },
   listagem: {
     display: "flex",
-    backgroundColor: "#AAAAAA",
-    borderRadius: 10,
-    alignItems: "center",
-    height: 100,
+    backgroundColor: "#D9D9D9",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#000000",
+    padding: 10,
+    width: "85%",
+    alignSelf: "center",
     marginBottom: 10,
   },
   botao: {
     display: "flex",
     alignItems: "center",
-    backgroundColor: "#FF6666",
-    textAlign: "center",
-    borderRadius: 10,
-    width: "70%",
+    justifyContent: "center",
+    backgroundColor: "#DDDDDD",
+    width: "100%",
+    marginTop:"4",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#000000",
+    padding: 5,
   },
   modalCons: {
     display: "flex",
-    backgroundColor: "#999999",
     borderRadius: 10,
     height: "100%",
     alignItems: "center",
@@ -238,21 +244,20 @@ const styles = StyleSheet.create({
     margin: 10,
     width: "70%",
   },
-  confirmBut: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "#66FF66",
-    width: "40%",
-    margin: 10,
-    borderRadius: 10,
+  buttonColor1: {
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    marginBottom:5,
+    borderColor: "#00000",
+    borderWidth: 1,
+    borderRadius: 5,
   },
-  denyBut: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "#FF6666",
-    width: "40%",
-    margin: 10,
-    borderRadius: 10,
+  buttonColor2: {
+    backgroundColor: "#215299",
+    padding: 10,
+    marginBottom:5,
+    borderRadius: 5,
+    borderWidth: 1,
   },
   botoesLayout: {
     display: "flex",

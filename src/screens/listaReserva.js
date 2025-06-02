@@ -10,7 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
 
-export default function ListaSalas({ navigation }) {
+export default function ListaReserva({ navigation }) {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -55,9 +55,8 @@ export default function ListaSalas({ navigation }) {
   }
 
   return (
-    <View style={styles.containerFlex}>
-
-      <Text style={styles.titulo}>Salas Disponíveis:</Text>
+    <View style={styles.containerBgg}>
+      <Text style={styles.titulo}>Reservas do Usuário:</Text>
 
       {loading ? (
         <Text>Nenhuma Reserva Encontrada</Text>
@@ -85,28 +84,23 @@ export default function ListaSalas({ navigation }) {
 
               <View style={styles.botoesLayout}>
                 <TouchableOpacity
-                  style={styles.denyBut}
+                  style={styles.confirmBut}
                   onPress={() => abrirModalCancelar(item)}
                 >
-                  <Text>Cancelar</Text>
+                  <Text >Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
-            
-            
           )}
-          
         />
-        
       )}
-      
+
       <TouchableOpacity
         style={styles.botaoFazerReserva}
         onPress={() => navigation.navigate("ListaSalas")}
       >
         <Text style={styles.textoBotao}>Fazer Reserva</Text>
       </TouchableOpacity>
-
 
       {/* Modal de Confirmação */}
       <Modal
@@ -115,7 +109,7 @@ export default function ListaSalas({ navigation }) {
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={{ textAlign: "center", marginBottom: 20 }}>
               Você tem certeza que deseja cancelar essa reserva?
@@ -131,7 +125,7 @@ export default function ListaSalas({ navigation }) {
                 style={styles.denyBut}
                 onPress={() => setModalVisible(false)}
               >
-                <Text>Não</Text>
+                <Text style={{color:"#ffffff"}}>Não</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -142,18 +136,16 @@ export default function ListaSalas({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  containerFlex: {
+  containerBgg: {
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    height: "80%",
+    height: "100%",
   },
   titulo: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+    alignSelf: "center",
   },
   listagem: {
     display: "flex",
@@ -162,7 +154,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000000",
     padding: 10,
-    width: "100%",
+    width: "85%",
+    alignSelf: "center",
     marginBottom: 10,
   },
   textoCentral: {
@@ -183,7 +176,7 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#DDDDDD",
+    backgroundColor: "#215299",
     width: "45%",
     borderRadius: 5,
     borderWidth: 1,
@@ -197,11 +190,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: "100%",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   modalContent: {
     backgroundColor: "#DDDDDD",
     padding: 20,
@@ -210,14 +198,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000000",
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.57)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   botaoFazerReserva: {
     backgroundColor: "rgba(0,0,0,0.6)",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignSelf: "center",
-    position: "absolute", // Posicionamento absoluto
-    bottom: 20, // Distância da parte inferior
   },
   textoBotao: {
     color: "#FFFFFF",
