@@ -9,13 +9,11 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import DropDownPicker from "react-native-dropdown-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
-export default function Reservar({ navigation, route }) {
-  const salaSelecionada = route.params.salaSelecionada;
-
-  // Estado para armazenar o userId no componente
+export default function Reservar({ navigation }) {
   const [userId, setUserId] = useState(null);
+  const [salaSelecionada, setSalaSelecionada] = useState(null);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([]);
@@ -28,7 +26,6 @@ export default function Reservar({ navigation, route }) {
     { label: "Sab", value: "Sab" },
   ]);
 
-  // Estado para a reserva
   const [schedule, setSchedule] = useState({
     user: userId,
     dateStart: "",
@@ -38,6 +35,7 @@ export default function Reservar({ navigation, route }) {
     timeStart: "",
     timeEnd: "",
   });
+
   const [focusedInput, setFocusedInput] = useState(null);
 
   const formatInputData = (value) => {
@@ -59,25 +57,31 @@ export default function Reservar({ navigation, route }) {
     return text;
   };
 
-  // Usando useEffect para buscar o userId do AsyncStorage
   useEffect(() => {
-    const getUserId = async () => {
+    const getUserData = async () => {
       try {
-        const storedUserId = await AsyncStorage.getItem("userId");
-        if (storedUserId !== null) {
-          setUserId(storedUserId); // Atualiza o userId no estado
+        const storedUserId = await SecureStore.getItemAsync("userId");
+        const storedSala = await SecureStore.getItemAsync("salaSelecionada");
+
+        if (storedUserId) {
+          setUserId(storedUserId);
         } else {
           console.log("Nenhum userId encontrado");
         }
+
+        if (storedSala) {
+          setSalaSelecionada(storedSala);
+        } else {
+          console.log("Nenhuma sala selecionada encontrada");
+        }
       } catch (error) {
-        console.error("Erro ao recuperar o userId do AsyncStorage:", error);
+        console.error("Erro ao recuperar dados do SecureStore:", error);
       }
     };
 
-    getUserId(); // Chama a função para recuperar o userId
-  }, []); // O array vazio garante que a função seja chamada apenas uma vez na montagem
+    getUserData();
+  }, []);
 
-  // Atualiza o estado 'schedule' quando o 'userId' for recuperado
   useEffect(() => {
     if (userId) {
       setSchedule((prev) => ({
@@ -85,7 +89,16 @@ export default function Reservar({ navigation, route }) {
         user: userId,
       }));
     }
-  }, [userId]); // Esse efeito roda sempre que o 'userId' mudar
+  }, [userId]);
+
+  useEffect(() => {
+    if (salaSelecionada) {
+      setSchedule((prev) => ({
+        ...prev,
+        classroom: salaSelecionada,
+      }));
+    }
+  }, [salaSelecionada]);
 
   useEffect(() => {
     setSchedule((prev) => ({
@@ -114,11 +127,11 @@ export default function Reservar({ navigation, route }) {
         <View
           style={{
             borderColor: focusedInput === "days" ? "#af2e2e" : "#000000",
-            marginBottom: "20",
+            marginBottom: 20,
             color: "#000000",
             fontSize: 12,
             width: "100%",
-            marginRight: "10",
+            marginRight: 10,
           }}
         >
           <DropDownPicker
@@ -145,7 +158,7 @@ export default function Reservar({ navigation, route }) {
           ]}
         >
           <TextInput
-            placeholder="Digite a data de inicio"
+            placeholder="Digite a data de início"
             value={schedule.dateStart}
             style={styles.input}
             placeholderTextColor="#000000"
@@ -183,6 +196,7 @@ export default function Reservar({ navigation, route }) {
             maxLength={10}
           />
         </View>
+
         <View
           style={[
             styles.Container,
@@ -192,7 +206,7 @@ export default function Reservar({ navigation, route }) {
           ]}
         >
           <TextInput
-            placeholder="Digite a hora de inicio"
+            placeholder="Digite a hora de início"
             value={schedule.timeStart}
             style={styles.input}
             placeholderTextColor="#000000"
@@ -270,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
+    borderWidth: 1,
     padding: 8,
     borderRadius: 10,
   },
@@ -290,7 +304,7 @@ const styles = StyleSheet.create({
   buttonColor1: {
     backgroundColor: "#FFFFFF",
     padding: 10,
-    borderColor: "#00000",
+    borderColor: "#000000",
     borderWidth: 1,
     borderRadius: 5,
   },

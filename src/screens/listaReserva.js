@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
+import * as SecureStore from 'expo-secure-store';
 
 export default function ListaReserva({ navigation }) {
   const [reservas, setReservas] = useState([]);
@@ -22,12 +23,13 @@ export default function ListaReserva({ navigation }) {
 
   async function getListaReserva() {
     try {
-      const userId = await AsyncStorage.getItem("userId");
+      const userId = await SecureStore.getItemAsync("userId");
       const response = await api.getListaReserva(userId);
       setReservas(response.data.results);
-      setLoading(false);
     } catch (error) {
-      console.log(error.response.data.error);
+      console.log(error?.response?.data?.error || error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -55,39 +57,32 @@ export default function ListaReserva({ navigation }) {
   }
 
   return (
-    <View style={styles.containerBgg}>
-      <Text style={styles.titulo}>Reservas do Usuário:</Text>
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Minhas Reservas</Text>
 
       {loading ? (
-        <Text>Nenhuma Reserva Encontrada</Text>
+        <ActivityIndicator size="large" color="#215299" style={{ marginTop: 50 }} />
+      ) : reservas.length === 0 ? (
+        <Text style={styles.semReservaTexto}>Nenhuma reserva encontrada</Text>
       ) : (
         <FlatList
           data={reservas}
           keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 80 }}
           renderItem={({ item }) => (
-            <View style={styles.listagem}>
-              <Text style={styles.textoCentral}>
-                Data de Início: {formatarData(item.dateStart)}
-              </Text>
-              <Text style={styles.textoCentral}>
-                Data de Fim: {formatarData(item.dateEnd)}
-              </Text>
-              <Text style={styles.textoCentral}>
-                Horário de Início: {item.timeStart}
-              </Text>
-              <Text style={styles.textoCentral}>
-                Horário de Fim: {item.timeEnd}
-              </Text>
-              <Text style={styles.textoCentral}>
-                Número da Sala: {item.classroom}
-              </Text>
+            <View style={styles.cardReserva}>
+              <Text style={styles.textoCentral}>Data de Início: {formatarData(item.dateStart)}</Text>
+              <Text style={styles.textoCentral}>Data de Fim: {formatarData(item.dateEnd)}</Text>
+              <Text style={styles.textoCentral}>Horário de Início: {item.timeStart}</Text>
+              <Text style={styles.textoCentral}>Horário de Fim: {item.timeEnd}</Text>
+              <Text style={styles.textoCentral}>Número da Sala: {item.classroom}</Text>
 
               <View style={styles.botoesLayout}>
                 <TouchableOpacity
-                  style={styles.confirmBut}
+                  style={styles.denyBut}
                   onPress={() => abrirModalCancelar(item)}
                 >
-                  <Text >Cancelar</Text>
+                  <Text style={styles.textoBotaoPequeno}>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -99,7 +94,7 @@ export default function ListaReserva({ navigation }) {
         style={styles.botaoFazerReserva}
         onPress={() => navigation.navigate("ListaSalas")}
       >
-        <Text style={styles.textoBotao}>Fazer Reserva</Text>
+        <Text style={styles.textoBotao}>Fazer Nova Reserva</Text>
       </TouchableOpacity>
 
       {/* Modal de Confirmação */}
@@ -111,7 +106,7 @@ export default function ListaReserva({ navigation }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={{ textAlign: "center", marginBottom: 20 }}>
+            <Text style={styles.modalTexto}>
               Você tem certeza que deseja cancelar essa reserva?
             </Text>
             <View style={styles.botoesLayout}>
@@ -119,13 +114,13 @@ export default function ListaReserva({ navigation }) {
                 style={styles.confirmBut}
                 onPress={cancelarReserva}
               >
-                <Text>Sim</Text>
+                <Text style={styles.textoBotaoPequeno}>Sim</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.denyBut}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={{color:"#ffffff"}}>Não</Text>
+                <Text style={styles.textoBotaoPequeno}>Não</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -134,87 +129,108 @@ export default function ListaReserva({ navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  containerBgg: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F4F4",
+    paddingTop: 20,
   },
   titulo: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 20,
     alignSelf: "center",
+    color: "#215299",
   },
-  listagem: {
-    display: "flex",
-    backgroundColor: "#D9D9D9",
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#000000",
-    padding: 10,
-    width: "85%",
+  semReservaTexto: {
+    fontSize: 16,
+    color: "#555555",
+    textAlign: "center",
+    marginTop: 40,
+  },
+  cardReserva: {
+    display:"flex",
+    alignItems:"center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 18,
+    width: "90%",
     alignSelf: "center",
-    marginBottom: 10,
+    marginBottom: 15,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   textoCentral: {
     textAlign: "center",
-  },
-  confirmBut: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#DDDDDD",
-    width: "45%",
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#000000",
-    padding: 5,
+    fontSize: 16,
+    color: "#333333",
+    marginVertical: 2,
   },
   denyBut: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#215299",
+    backgroundColor: "#D9534F",
     width: "45%",
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#000000",
-    padding: 5,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  confirmBut: {
+    backgroundColor: "#0275D8",
+    width: "45%",
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
   },
   botoesLayout: {
-    display: "flex",
     flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginTop: 10,
-    width: "100%",
+    justifyContent: "space-between",
+    marginTop: 14,
   },
   modalContent: {
-    backgroundColor: "#DDDDDD",
-    padding: 20,
-    borderRadius: 8,
-    width: "80%",
-    borderWidth: 1,
-    borderColor: "#000000",
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+    borderRadius: 12,
+    width: "85%",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.57)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  modalTexto: {
+    textAlign: "center",
+    marginBottom: 20,
+    fontSize: 16,
+    color: "#333333",
+  },
   botaoFazerReserva: {
-    backgroundColor: "rgba(0,0,0,0.6)",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: "#215299",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     alignSelf: "center",
+    marginTop: 10,
+    marginBottom: 20,
+    elevation: 3,
   },
   textoBotao: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 16,
     textAlign: "center",
+  },
+  textoBotaoPequeno: {
+    color: "#FFFFFF",
+    fontWeight: "500",
+    fontSize: 14,
   },
 });

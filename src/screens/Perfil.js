@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store"
 
 export default function AtualizarUsuario({ navigation }) {
   const [user, setUser] = useState({
@@ -18,7 +18,9 @@ export default function AtualizarUsuario({ navigation }) {
     email: "",
     cpf: "",
     password: "",
+    password2:"",
     showPassword: true,
+    showPassword2: true,
   });
 
   const [currentCpf, setCurrentCpf] = useState("");
@@ -26,8 +28,8 @@ export default function AtualizarUsuario({ navigation }) {
 
   useEffect(() => {
     async function loadUser() {
-      const cpf = await AsyncStorage.getItem("userId");
-      const token = await AsyncStorage.getItem("authorization")
+      const cpf = await SecureStore.getItemAsync("userId");
+      const token = await SecureStore.getItemAsync("authorization")
       console.log("CPF carregado:", cpf);
       console.log(token)
       setUser((prev) => ({ ...prev, cpf: cpf }));
@@ -156,6 +158,38 @@ export default function AtualizarUsuario({ navigation }) {
             />
           </TouchableOpacity>
         </View>
+
+        <View
+          style={[
+            styles.Container2,
+            {
+              borderColor: focusedInput === "password" ? "#af2e2e" : "#000000",
+            },
+          ]}
+        >
+          <TextInput
+            placeholder="Confirme a senha"
+            value={user.password2}
+            onChangeText={(value) => setUser({ ...user, password2: value })}
+            style={styles.inputPassword}
+            secureTextEntry={user.showPassword2}
+            placeholderTextColor="#000000"
+            maxLength={50}
+            onFocus={() => setFocusedInput("password")}
+            onBlur={() => setFocusedInput(null)}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setUser({ ...user, showPassword2: !user.showPassword2 })
+            }
+          >
+            <Ionicons
+              name={user.showPassword2 ? "eye-off" : "eye"}
+              size={34}
+              color="#808080"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.viewNavigate}>
@@ -174,76 +208,91 @@ export default function AtualizarUsuario({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 300,
-    height: 300,
-    alignSelf: "center",
-    resizeMode: "contain",
-    marginBottom: -70,
-    marginTop: -50,
-  },
   ViewInputs: {
     width: "90%",
     alignSelf: "center",
-    marginTop: 10,
+    marginTop: 20,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   Text: {
-    fontSize: 25,
-    fontWeight: "500",
-    marginBottom: 15,
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#215299",
+    marginBottom: 20,
+    alignSelf: "center",
   },
   Container: {
-    marginBottom: 20,
+    marginBottom: 15,
     flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    padding: 12,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#ccc",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     borderRadius: 10,
+    backgroundColor: "#fdfdfd",
   },
   input: {
-    color: "#000000",
+    color: "#333",
     fontSize: 16,
     width: "100%",
   },
   Container2: {
-    marginBottom: 20,
+    marginBottom: 15,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    paddingLeft: 12,
-    padding: 5,
+    borderWidth: 1.5,
+    borderColor: "#ccc",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     borderRadius: 10,
+    backgroundColor: "#fdfdfd",
   },
   inputPassword: {
-    color: "#000000",
+    color: "#333",
     fontSize: 16,
     width: "90%",
   },
   viewNavigate: {
-    display: "flex",
     flexDirection: "row",
     width: "90%",
-    alignItems: "center",
     alignSelf: "center",
     justifyContent: "space-between",
+    marginTop: 25,
   },
   buttonColor1: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderColor: "#00000",
-    borderWidth: 1,
-    borderRadius: 5,
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderColor: "#215299",
+    borderWidth: 1.5,
+    borderRadius: 8,
   },
   TextNavigate1: {
     color: "#215299",
+    fontSize: 16,
+    fontWeight: "600",
   },
   buttonColor2: {
     backgroundColor: "#215299",
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#215299",
   },
   TextNavigate2: {
     color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
+

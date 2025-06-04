@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
-import { AsyncStorage } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
 export default function Cadastro({ navigation }) {
   const [user, setUser] = useState({
@@ -24,12 +24,21 @@ export default function Cadastro({ navigation }) {
   });
   const [focusedInput, setFocusedInput] = useState(null);
 
+  async function saveToken(token) {
+    await SecureStore.setItemAsync("token", token);
+    console.log(token)
+  }
+  async function saveCpf(cpf) {
+    await SecureStore.setItemAsync("userId", cpf);
+    console.log(cpf)
+  }
+
   async function handleCadastro() {
     await api.postCadastro(user).then(
       (response) => {
         Alert.alert(response.data.message);
-        AsyncStorage.setItem("userId", user.cpf);
-        AsyncStorage.setItem("authorization", response.data.token)
+        saveToken(response.data.token)
+        saveCpf(user.cpf)
         navigation.navigate("ListaReserva", user.cpf);
       },
       (error) => {

@@ -1,29 +1,20 @@
 import axios from "axios"
-import { AsyncStorage } from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store'
 
 const api = axios.create({
     baseURL: "http://10.89.240.75:5000/api/reservas/v3/", 
     headers: {"accept": "application/json"}
 })
+
 api.interceptors.request.use(
-    async (config) => {
-      try {
-        const token = await AsyncStorage.getItem("authorization");
-        console.log("Token do axios: ", token)
-  
-        if (token) {
-          config.headers.Authorization = token;
-        }
-  
-        return config;
-      } catch (error) {
-        return config; 
+  async (config) => {
+      const token = await SecureStore.getItemAsync("token");
+      if(token){
+          config.headers.Authorization = `${token}`
       }
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
+      return config
+  },(error) => Promise.reject(error)
+)
   
 
 const sheets =  {

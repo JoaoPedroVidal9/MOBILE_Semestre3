@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons"
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from 'expo-secure-store'
 
 export default function Login({ navigation }) {
     const [user, setUser] = useState({
@@ -13,13 +13,21 @@ export default function Login({ navigation }) {
 
     const [focusedInput, setFocusedInput] = useState(null); // constante para saber qual input está em foco
 
+
+    async function saveToken(token){
+        await SecureStore.setItemAsync("token",token);
+    }
+    async function saveCpf(cpf){
+        await SecureStore.setItemAsync("userId", cpf);
+    }
+    
     async function handleLogin() {
         await api.postLogin(user)
             .then(
                 (response) => {
                     Alert.alert(response.data.message);
-                    AsyncStorage.setItem("userId", user.cpf);
-                    AsyncStorage.setItem("authorization", response.data.token)
+                    saveToken(response.data.token)
+                    saveCpf(user.cpf)
                     navigation.navigate("ListaReserva", user.cpf);
                 },
                 (error) => {

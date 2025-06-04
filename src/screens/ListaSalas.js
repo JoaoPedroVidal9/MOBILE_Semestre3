@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../axios/axios";
+import * as SecureStore from "expo-secure-store";
 import {
   View,
   Text,
@@ -10,15 +11,10 @@ import {
   TextInput,
   StyleSheet,
   Alert,
-  ScrollView
+  ScrollView,
 } from "react-native";
 
-export default function ListaSalas({ navigation, route }) {
-  const [rota, setRota] = useState({
-    'userId':route.params,
-    'salaSelecionada': "",
-  })
-
+export default function ListaSalas({ navigation }) {
   const [salas, setSalas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +26,8 @@ export default function ListaSalas({ navigation, route }) {
     weekStart: "",
     weekEnd: "",
   });
+
+  const [salaSelecionada, setSalaSelecionada] = useState("");
 
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
@@ -44,13 +42,30 @@ export default function ListaSalas({ navigation, route }) {
     return text;
   };
 
-  const abrirModalConsulta = (item) => {
-    setRota({...rota, 'salaSelecionada':item.number});
-    setModalConsulta(true);
+  const abrirModalConsulta = async (item) => {
+    try {
+      await SecureStore.setItemAsync("salaSelecionada", item.number);
+      setSalaSelecionada(item.number);
+      setModalConsulta(true);
+    } catch (error) {
+      console.log("Erro ao salvar salaSelecionada:", error);
+    }
+  };
+
+  const carregarSalaSelecionada = async () => {
+    try {
+      const sala = await SecureStore.getItemAsync("salaSelecionada");
+      if (sala) {
+        setSalaSelecionada(sala);
+      }
+    } catch (error) {
+      console.log("Erro ao carregar salaSelecionada:", error);
+    }
   };
 
   useEffect(() => {
     getSalas();
+    carregarSalaSelecionada();
   }, []);
 
   async function getSalas() {
@@ -59,30 +74,38 @@ export default function ListaSalas({ navigation, route }) {
       setSalas(response.data.classrooms);
       setLoading(false);
     } catch (error) {
-      console.log(error.response.data.error); // Caso não puxe as salas, permanece carregando.
+      console.log(error.response?.data?.error || error.message);
     }
   }
+
   async function ConsultarReservas() {
-    await api
-      .postConsulta({
+    try {
+      const sala = await SecureStore.getItemAsync("salaSelecionada");
+      if (!sala) {
+        Alert.alert("Selecione uma sala antes.");
+        return;
+      }
+
+      const response = await api.postConsulta({
         weekStart: infoSchedule.weekStart,
         weekEnd: infoSchedule.weekEnd,
-        classroomID: rota.salaSelecionada,
-      })
-      .then(
-        (response) => {
-          setIdSala(response.data.available);
-          setModalDisponivel(true);
-        },
-        (error) => {
-          Alert.alert(error.response.data.error);
-        }
+        classroomID: sala,
+      });
+
+      setIdSala(response.data.available);
+      setModalDisponivel(true);
+    } catch (error) {
+      Alert.alert(
+        error.response?.data?.error || "Erro ao consultar disponibilidade."
       );
+    }
   }
 
   return (
     <View style={styles.containerFlex}>
-      <Text>Salas Disponíveis:</Text>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>
+        Salas Disponíveis:
+      </Text>
 
       {loading ? (
         <ActivityIndicator size="large" color="#ff0000" />
@@ -106,23 +129,21 @@ export default function ListaSalas({ navigation, route }) {
         />
       )}
 
+      {/* Modal de Consulta */}
       <Modal
         visible={modalConsulta}
         onRequestClose={() => setModalConsulta(false)}
         animationType="slide"
       >
         <View style={styles.modalCons}>
-          <Text
-            style={{
-              margin: 10,
-            }}
-          >
-            Consultar Disponibilidade:
+          <Text style={{ margin: 10, fontSize: 18 }}>
+            Consultar Disponibilidade
           </Text>
-          <Text>Selecione os dias para consultar a semana:</Text>
+          <Text>Selecione os dias para consultar:</Text>
+
           <TextInput
             style={styles.inputData}
-            placeholder="Digite o primeiro dia (Segunda-feira): *"
+            placeholder="Data inicial (Segunda-feira)"
             placeholderTextColor="#000000"
             value={infoSchedule.weekStart}
             onChangeText={(value) => {
@@ -132,9 +153,10 @@ export default function ListaSalas({ navigation, route }) {
             keyboardType="numeric"
             maxLength={10}
           />
+
           <TextInput
             style={styles.inputData}
-            placeholder="Digite o último dia (Domingo): *"
+            placeholder="Data final (Domingo)"
             placeholderTextColor="#000000"
             value={infoSchedule.weekEnd}
             onChangeText={(value) => {
@@ -144,6 +166,7 @@ export default function ListaSalas({ navigation, route }) {
             keyboardType="numeric"
             maxLength={10}
           />
+
           <View style={styles.botoesLayout}>
             <TouchableOpacity
               style={styles.buttonColor1}
@@ -151,40 +174,49 @@ export default function ListaSalas({ navigation, route }) {
             >
               <Text>Fechar</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.buttonColor2}
               onPress={() => ConsultarReservas()}
             >
-              <Text style={{color:"white"}}>Consultar</Text>
+              <Text style={{ color: "white" }}>Consultar</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      {/* Modal de Disponibilidade */}
       <Modal
         visible={modalDisponivel}
         onRequestClose={() => setModalDisponivel(false)}
         animationType="fade"
       >
         {!idSala ? (
-          <Text>Espera</Text>
+          <Text>Carregando...</Text>
         ) : (
           <View style={styles.modalCons}>
-            <Text>Horários Disponíveis:</Text>
+            <Text style={{ fontSize: 18, marginBottom: 10 }}>
+              Horários Disponíveis:
+            </Text>
             <ScrollView>
               {diasSemana.map((dia) => (
                 <Text key={dia} style={{ marginBottom: 10 }}>
-                  {dia}: {idSala[dia].join(`, ` )}
+                  {dia}: {idSala[dia]?.join(", ") || "Sem horários"}
                 </Text>
               ))}
             </ScrollView>
 
-            <Text>Sala: {rota.salaSelecionada}</Text>
+            <Text style={{ marginVertical: 10 }}>
+              Sala selecionada: {salaSelecionada}
+            </Text>
+
             <TouchableOpacity
               style={styles.buttonColor2}
-              onPress={()=>{navigation.navigate("Reservar", rota);}}
+              onPress={() => {
+                navigation.navigate("Reservar");
+              }}
             >
-              <Text style={{color:"white"}}>Reserve-a Agora</Text>
+              <Text style={{ color: "white" }}>Reservar Agora</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -224,7 +256,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#DDDDDD",
     width: "100%",
-    marginTop:"4",
+    marginTop: 4,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: "#000000",
@@ -243,19 +275,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     margin: 10,
     width: "70%",
+    padding: 8,
+    borderColor: "#000000",
+    borderWidth: 1,
   },
   buttonColor1: {
     backgroundColor: "#FFFFFF",
     padding: 10,
-    marginBottom:5,
-    borderColor: "#00000",
+    marginBottom: 5,
+    borderColor: "#000000",
     borderWidth: 1,
     borderRadius: 5,
   },
   buttonColor2: {
     backgroundColor: "#215299",
     padding: 10,
-    marginBottom:5,
+    marginBottom: 5,
     borderRadius: 5,
     borderWidth: 1,
   },
@@ -265,10 +300,5 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-evenly",
     margin: 10,
-  },
-  viewHorarios: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
   },
 });

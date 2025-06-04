@@ -17,30 +17,30 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Cadastro" component={CadastroScreen} />
         <Stack.Screen
-          name="ListaSalas">{({navigation, route}) => (
+          name="ListaSalas">{({navigation}) => (
             <LayoutMenu navigation={navigation}>
-              <ListaSalas navigation={navigation} route={route} />
+              <ListaSalas navigation={navigation} />
             </LayoutMenu>
           )}
         </Stack.Screen>
         <Stack.Screen name="Reservar">
-          {({ route, navigation }) => (
+          {({ navigation }) => (
             <LayoutMenu navigation={navigation}>
-              <Reservar route={route} navigation={navigation} />
+              <Reservar navigation={navigation} />
             </LayoutMenu>
           )}
         </Stack.Screen>
         <Stack.Screen name="ListaReserva">
-          {({ route, navigation }) => (
+          {({ navigation }) => (
             <LayoutMenu navigation={navigation}>
-              <ListaReserva route={route} navigation={navigation} />
+              <ListaReserva navigation={navigation} />
             </LayoutMenu>
           )}
         </Stack.Screen>
         <Stack.Screen name="Perfil">
-          {({ route, navigation }) => (
+          {({ navigation }) => (
             <LayoutMenu navigation={navigation}>
-              <Perfil route={route} navigation={navigation} />
+              <Perfil navigation={navigation} />
             </LayoutMenu>
           )}
         </Stack.Screen>
