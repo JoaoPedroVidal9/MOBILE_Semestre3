@@ -19,8 +19,10 @@ export default function AtualizarUsuario({ navigation }) {
     cpf: "",
     password: "",
     password2:"",
+    oldPassword:"",
     showPassword: true,
     showPassword2: true,
+    showPassword3: true,
   });
 
   const [currentCpf, setCurrentCpf] = useState("");
@@ -127,6 +129,39 @@ export default function AtualizarUsuario({ navigation }) {
         </View>
 
         {/* Senha */}
+        
+        <View
+          style={[
+            styles.Container2,
+            {
+              borderColor: focusedInput === "oldPassword" ? "#af2e2e" : "#000000",
+            },
+          ]}
+        >
+          <TextInput
+            placeholder="Digite sua senha atual"
+            value={user.oldPassword}
+            onChangeText={(value) => setUser({ ...user, oldPassword: value })}
+            style={styles.inputPassword}
+            secureTextEntry={user.showPassword3}
+            placeholderTextColor="#000000"
+            maxLength={50}
+            onFocus={() => setFocusedInput("oldPassword")}
+            onBlur={() => setFocusedInput(null)}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setUser({ ...user, showPassword3: !user.showPassword3 })
+            }
+          >
+            <Ionicons
+              name={user.showPassword3 ? "eye-off" : "eye"}
+              size={34}
+              color="#808080"
+            />
+          </TouchableOpacity>
+        </View>
+
         <View
           style={[
             styles.Container2,
@@ -163,19 +198,19 @@ export default function AtualizarUsuario({ navigation }) {
           style={[
             styles.Container2,
             {
-              borderColor: focusedInput === "password" ? "#af2e2e" : "#000000",
+              borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000",
             },
           ]}
         >
           <TextInput
-            placeholder="Confirme a senha"
+            placeholder="Confirme a sua nova senha"
             value={user.password2}
             onChangeText={(value) => setUser({ ...user, password2: value })}
             style={styles.inputPassword}
             secureTextEntry={user.showPassword2}
             placeholderTextColor="#000000"
             maxLength={50}
-            onFocus={() => setFocusedInput("password")}
+            onFocus={() => setFocusedInput("password2")}
             onBlur={() => setFocusedInput(null)}
           />
           <TouchableOpacity

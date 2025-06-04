@@ -16,7 +16,7 @@ export default function LayoutMenu({ children, navigation }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.barraTopo}>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
           <IoniconsMenu name="menu" size={28} color="white" />
         </TouchableOpacity>
 

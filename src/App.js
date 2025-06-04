@@ -5,6 +5,7 @@ import ListaSalas from "./screens/ListaSalas";
 import Reservar from "./screens/Reservar";
 import ListaReserva from "./screens/listaReserva";
 import Perfil from "./screens/Perfil";
+import Home from "./screens/Home";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -41,6 +42,13 @@ export default function App() {
           {({ navigation }) => (
             <LayoutMenu navigation={navigation}>
               <Perfil navigation={navigation} />
+            </LayoutMenu>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Home">
+          {({ navigation }) => (
+            <LayoutMenu navigation={navigation}>
+              <Home navigation={navigation} />
             </LayoutMenu>
           )}
         </Stack.Screen>
