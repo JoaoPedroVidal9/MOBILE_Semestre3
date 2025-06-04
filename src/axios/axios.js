@@ -8,7 +8,8 @@ const api = axios.create({
 api.interceptors.request.use(
     async (config) => {
       try {
-        const token = await AsyncStorage.getItem("jwt");
+        const token = await AsyncStorage.getItem("authorization");
+        console.log("Token do axios: ", token)
   
         if (token) {
           config.headers.Authorization = token;
@@ -33,6 +34,7 @@ const sheets =  {
     postReserva: (body) => api.post('schedule/', body),
     getListaReserva: (userId) => api.get(`schedule/user/${userId}`),
     deleteReserva: (reservaId) => api.delete(`schedule/${reservaId}`),
+    putAtualizarUsuario: (currentCpf, user) => api.put(`user/${currentCpf}`, user),
 }
 
 export default sheets

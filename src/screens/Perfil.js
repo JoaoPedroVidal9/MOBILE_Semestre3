@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,44 +10,56 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
-import { AsyncStorage } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Cadastro({ navigation }) {
+export default function AtualizarUsuario({ navigation }) {
   const [user, setUser] = useState({
     name: "",
     email: "",
     cpf: "",
     password: "",
-    password2: "",
     showPassword: true,
-    showPassword2: true,
   });
+
+  const [currentCpf, setCurrentCpf] = useState("");
   const [focusedInput, setFocusedInput] = useState(null);
 
-  async function handleCadastro() {
-    await api.postCadastro(user).then(
-      (response) => {
-        Alert.alert(response.data.message);
-        AsyncStorage.setItem("userId", user.cpf);
-        AsyncStorage.setItem("authorization", response.data.token)
-        navigation.navigate("ListaReserva", user.cpf);
-      },
-      (error) => {
-        Alert.alert(error.response.data.error);
-      }
-    );
-  }
+  useEffect(() => {
+    async function loadUser() {
+      const cpf = await AsyncStorage.getItem("userId");
+      const token = await AsyncStorage.getItem("authorization")
+      console.log("CPF carregado:", cpf);
+      console.log(token)
+      setUser((prev) => ({ ...prev, cpf: cpf }));
+      setCurrentCpf(cpf);
+    }
+    loadUser();
+  }, []);
+
+
+  
+  async function handleAtualizar() {
+    await api.putAtualizarUsuario(currentCpf, user)
+        .then(
+            (response) => {
+                Alert.alert(response.data.message);
+                if (currentCpf !== user.cpf) {
+                    AsyncStorage.setItem("userId", user.cpf);
+                    setCurrentCpf(user.cpf);
+                }
+            },
+            (error) => {
+                Alert.alert(error.response.data.error);
+            }
+        );
+}
 
   return (
     <View>
-      <Image
-        source={require("../../assets/logo_senai.png")}
-        style={styles.logo}
-      />
-
       <View style={styles.ViewInputs}>
-        <Text style={styles.Text}>Cadastre-se</Text>
+        <Text style={styles.Text}>Atualizar Dados</Text>
 
+        {/* Nome */}
         <View
           style={[
             styles.Container,
@@ -66,6 +78,7 @@ export default function Cadastro({ navigation }) {
           />
         </View>
 
+        {/* Email */}
         <View
           style={[
             styles.Container,
@@ -76,22 +89,20 @@ export default function Cadastro({ navigation }) {
             placeholder="Digite seu e-mail"
             value={user.email}
             onChangeText={(value) => {
-              // Filtra apenas letras, números, ponto e arroba
-              //Remove qualquer caractere que não seja letra, número, ponto ou arroba.
-              //g no final significa "global"
               const filteredValue = value.replace(/[^a-zA-Z0-9.@]/g, "");
               setUser({ ...user, email: filteredValue });
             }}
             style={styles.input}
             placeholderTextColor="#000000"
-            keyboardType="email-address" // Incluir @ e . no teclado para facilitar a digitação
-            maxLength={255} // Limita a entrada a 255 caracteres
-            autoCapitalize="none" // Evita letras maiúsculas automáticas
+            keyboardType="email-address"
+            maxLength={255}
+            autoCapitalize="none"
             onFocus={() => setFocusedInput("email")}
             onBlur={() => setFocusedInput(null)}
           />
         </View>
 
+        {/* CPF */}
         <View
           style={[
             styles.Container,
@@ -99,22 +110,21 @@ export default function Cadastro({ navigation }) {
           ]}
         >
           <TextInput
-            placeholder="Digite seu CPF *"
-            placeholderTextColor="#000000"
+            placeholder="Digite seu CPF"
             value={user.cpf}
-            onChangeText={(value) => {
-              // Filtra apenas números e limita a 11 caracteres
-              const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
-              setUser({ ...user, cpf: numericValue });
-            }}
+            onChangeText={(value) =>
+              setUser({ ...user, cpf: value.replace(/[^0-9]/g, "") })
+            }
             style={styles.input}
-            keyboardType="numeric" // Exibe o teclado numérico
-            maxLength={11} // Limita a entrada a 11 caracteres
+            placeholderTextColor="#000000"
+            maxLength={11}
+            keyboardType="numeric"
             onFocus={() => setFocusedInput("cpf")}
             onBlur={() => setFocusedInput(null)}
           />
         </View>
 
+        {/* Senha */}
         <View
           style={[
             styles.Container2,
@@ -124,17 +134,16 @@ export default function Cadastro({ navigation }) {
           ]}
         >
           <TextInput
-            placeholder="Digite sua senha"
+            placeholder="Digite sua nova senha"
             value={user.password}
             onChangeText={(value) => setUser({ ...user, password: value })}
             style={styles.inputPassword}
-            secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
+            secureTextEntry={user.showPassword}
             placeholderTextColor="#000000"
             maxLength={50}
             onFocus={() => setFocusedInput("password")}
             onBlur={() => setFocusedInput(null)}
           />
-
           <TouchableOpacity
             onPress={() =>
               setUser({ ...user, showPassword: !user.showPassword })
@@ -147,50 +156,17 @@ export default function Cadastro({ navigation }) {
             />
           </TouchableOpacity>
         </View>
-
-        <View
-          style={[
-            styles.Container2,
-            {
-              borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Confirme sua senha"
-            value={user.password2}
-            onChangeText={(value) => setUser({ ...user, password2: value })}
-            style={styles.inputPassword}
-            secureTextEntry={user.showPassword2} //A senha não ficar visível a menos que ele clique no icon
-            placeholderTextColor="#000000"
-            maxLength={50}
-            onFocus={() => setFocusedInput("password2")}
-            onBlur={() => setFocusedInput(null)}
-          />
-
-          <TouchableOpacity
-            onPress={() =>
-              setUser({ ...user, showPassword2: !user.showPassword2 })
-            }
-          >
-            <Ionicons
-              name={user.showPassword2 ? "eye-off" : "eye"}
-              size={34}
-              color="#808080"
-            />
-          </TouchableOpacity>
-        </View>
       </View>
 
       <View style={styles.viewNavigate}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => navigation.goBack()}
           style={styles.buttonColor1}
         >
           <Text style={styles.TextNavigate1}>Voltar</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleCadastro} style={styles.buttonColor2}>
-          <Text style={styles.TextNavigate2}>Criar Conta</Text>
+        <TouchableOpacity onPress={handleAtualizar} style={styles.buttonColor2}>
+          <Text style={styles.TextNavigate2}>Salvar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -220,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
+    borderWidth: 1,
     padding: 12,
     borderRadius: 10,
   },
@@ -233,7 +209,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
+    borderWidth: 1,
     paddingLeft: 12,
     padding: 5,
     borderRadius: 10,

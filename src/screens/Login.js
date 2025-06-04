@@ -19,7 +19,8 @@ export default function Login({ navigation }) {
                 (response) => {
                     Alert.alert(response.data.message);
                     AsyncStorage.setItem("userId", user.cpf);
-                    navigation.navigate("ListaReservas", user.cpf);
+                    AsyncStorage.setItem("authorization", response.data.token)
+                    navigation.navigate("ListaReserva", user.cpf);
                 },
                 (error) => {
                     Alert.alert(error.response.data.error);

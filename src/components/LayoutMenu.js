@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import IoniconsMenu from "@expo/vector-icons/Ionicons";
 import IoniconsUser from "@expo/vector-icons/Ionicons";
 
-export default function LayoutMenu({ children }) {
+export default function LayoutMenu({ children, navigation }) {
   return (
     <View style={{ flex: 1}}>
       <View style={estilos.centralizarRow}>
@@ -20,6 +20,7 @@ export default function LayoutMenu({ children }) {
             name="person"
             size={24}
             color="black"
+            onPress={() => navigation.navigate("Perfil")}
           />
         </TouchableOpacity>
       </View>
