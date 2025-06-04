@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; 
 import api from "../axios/axios";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -12,7 +12,10 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Platform,
 } from "react-native";
+
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function ListaSalas({ navigation }) {
   const [salas, setSalas] = useState([]);
@@ -31,20 +34,48 @@ export default function ListaSalas({ navigation }) {
 
   const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
-  const formatInput = (value) => {
-    let text = value.replace(/[^0-9]/g, "");
-    if (text.length > 4) {
-      text = text.substring(0, 4) + "-" + text.substring(4);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentPicker, setCurrentPicker] = useState(null);
+  const [tempDate, setTempDate] = useState(new Date());
+
+  const formatDate = (date) => date.toISOString().slice(0, 10);
+
+  const openDatePicker = (pickerType) => {
+    setCurrentPicker(pickerType);
+    let dateToSet = new Date();
+    if (pickerType === "start" && infoSchedule.weekStart) {
+      const parsed = new Date(infoSchedule.weekStart);
+      if (!isNaN(parsed)) dateToSet = parsed;
+    } else if (pickerType === "end" && infoSchedule.weekEnd) {
+      const parsed = new Date(infoSchedule.weekEnd);
+      if (!isNaN(parsed)) dateToSet = parsed;
     }
-    if (text.length > 7) {
-      text = text.substring(0, 7) + "-" + text.substring(7);
-    }
-    return text;
+    setTempDate(dateToSet);
+    setShowDatePicker(true);
   };
+
+  const onDateChange = (event, selectedDate) => {
+    if (event.type === "dismissed") {
+      setShowDatePicker(false);
+      return;
+    }
+    const currentDate = selectedDate || tempDate;
+    setShowDatePicker(Platform.OS === "ios");
+    const formatted = formatDate(currentDate);
+    if (currentPicker === "start") {
+      setInfoSchedule((prev) => ({ ...prev, weekStart: formatted }));
+    } else if (currentPicker === "end") {
+      setInfoSchedule((prev) => ({ ...prev, weekEnd: formatted }));
+    }
+  };
+
+  async function setarSala(salaSelecionada) {
+    await SecureStore.setItemAsync("salaSelecionada", salaSelecionada);
+  }
 
   const abrirModalConsulta = async (item) => {
     try {
-      await SecureStore.setItemAsync("salaSelecionada", item.number);
+      setarSala(item.number);
       setSalaSelecionada(item.number);
       setModalConsulta(true);
     } catch (error) {
@@ -75,6 +106,7 @@ export default function ListaSalas({ navigation }) {
       setLoading(false);
     } catch (error) {
       console.log(error.response?.data?.error || error.message);
+      setLoading(false);
     }
   }
 
@@ -102,27 +134,26 @@ export default function ListaSalas({ navigation }) {
   }
 
   return (
-    <View style={styles.containerFlex}>
-      <Text style={{ fontSize: 18, marginBottom: 10 }}>
-        Salas Disponíveis:
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Salas Disponíveis</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#ff0000" />
+        <ActivityIndicator size="large" color="#215299" />
       ) : (
         <FlatList
           data={salas}
           keyExtractor={(item) => item.number.toString()}
+          contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 10 }}
           renderItem={({ item }) => (
-            <View style={styles.listagem}>
-              <Text>Número: {item.number}</Text>
-              <Text>Capacidade: {item.capacity}</Text>
-              <Text>Descrição: {item.description}</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Sala {item.number}</Text>
+              <Text style={styles.cardText}>Capacidade: {item.capacity}</Text>
+              <Text style={styles.cardText}>Descrição: {item.description}</Text>
               <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => abrirModalConsulta(item)}
               >
-                <Text>Conferir Disponibilidade</Text>
+                <Text style={styles.buttonText}>Conferir Disponibilidade</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -132,55 +163,60 @@ export default function ListaSalas({ navigation }) {
       {/* Modal de Consulta */}
       <Modal
         visible={modalConsulta}
-        onRequestClose={() => setModalConsulta(false)}
+        transparent
         animationType="slide"
+        onRequestClose={() => setModalConsulta(false)}
       >
-        <View style={styles.modalCons}>
-          <Text style={{ margin: 10, fontSize: 18 }}>
-            Consultar Disponibilidade
-          </Text>
-          <Text>Selecione os dias para consultar:</Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>Consultar Disponibilidade</Text>
 
-          <TextInput
-            style={styles.inputData}
-            placeholder="Data inicial (Segunda-feira)"
-            placeholderTextColor="#000000"
-            value={infoSchedule.weekStart}
-            onChangeText={(value) => {
-              const text = formatInput(value);
-              setInfoSchedule({ ...infoSchedule, weekStart: text });
-            }}
-            keyboardType="numeric"
-            maxLength={10}
-          />
+            <Text style={styles.label}>Selecione os dias para consultar:</Text>
 
-          <TextInput
-            style={styles.inputData}
-            placeholder="Data final (Domingo)"
-            placeholderTextColor="#000000"
-            value={infoSchedule.weekEnd}
-            onChangeText={(value) => {
-              const text = formatInput(value);
-              setInfoSchedule({ ...infoSchedule, weekEnd: text });
-            }}
-            keyboardType="numeric"
-            maxLength={10}
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Data inicial (Segunda-feira)"
+              placeholderTextColor="#999"
+              value={infoSchedule.weekStart}
+              onFocus={() => openDatePicker("start")}
+              showSoftInputOnFocus={false}
+            />
 
-          <View style={styles.botoesLayout}>
-            <TouchableOpacity
-              style={styles.buttonColor1}
-              onPress={() => setModalConsulta(false)}
-            >
-              <Text>Fechar</Text>
-            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="Data final (Domingo)"
+              placeholderTextColor="#999"
+              value={infoSchedule.weekEnd}
+              onFocus={() => openDatePicker("end")}
+              showSoftInputOnFocus={false}
+            />
 
-            <TouchableOpacity
-              style={styles.buttonColor2}
-              onPress={() => ConsultarReservas()}
-            >
-              <Text style={{ color: "white" }}>Consultar</Text>
-            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="calendar"
+                onChange={onDateChange}
+                maximumDate={new Date(2100, 11, 31)}
+                minimumDate={new Date(2000, 0, 1)}
+              />
+            )}
+
+            <View style={styles.buttonsRowModalConsulta}>
+              <TouchableOpacity
+                style={styles.buttonOutlineModal}
+                onPress={() => setModalConsulta(false)}
+              >
+                <Text style={styles.buttonOutlineText}>Fechar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.buttonModal}
+                onPress={ConsultarReservas}
+              >
+                <Text style={styles.buttonTextModal}>Consultar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -188,117 +224,237 @@ export default function ListaSalas({ navigation }) {
       {/* Modal de Disponibilidade */}
       <Modal
         visible={modalDisponivel}
-        onRequestClose={() => setModalDisponivel(false)}
+        transparent
         animationType="fade"
+        onRequestClose={() => setModalDisponivel(false)}
       >
-        {!idSala ? (
-          <Text>Carregando...</Text>
-        ) : (
-          <View style={styles.modalCons}>
-            <Text style={{ fontSize: 18, marginBottom: 10 }}>
-              Horários Disponíveis:
-            </Text>
-            <ScrollView>
-              {diasSemana.map((dia) => (
-                <Text key={dia} style={{ marginBottom: 10 }}>
-                  {dia}: {idSala[dia]?.join(", ") || "Sem horários"}
-                </Text>
-              ))}
-            </ScrollView>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>Horários Disponíveis</Text>
 
-            <Text style={{ marginVertical: 10 }}>
+            {!idSala ? (
+              <ActivityIndicator size="large" color="#215299" />
+            ) : (
+              <ScrollView style={{ maxHeight: 300, width: "100%" }}>
+                {diasSemana.map((dia) => (
+                  <View key={dia} style={{ marginBottom: 15 }}>
+                    <Text style={styles.dayTitle}>{dia}:</Text>
+                    <View style={styles.badgeContainer}>
+                      {idSala?.[dia]?.length > 0 ? (
+                        idSala[dia].map((horario, index) => (
+                          <View key={index} style={styles.badge}>
+                            <Text style={styles.badgeText}>{horario}</Text>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={styles.noAvailability}>
+                          Sem horários disponíveis
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+
+            <Text style={styles.selectedRoom}>
               Sala selecionada: {salaSelecionada}
             </Text>
 
-            <TouchableOpacity
-              style={styles.buttonColor2}
-              onPress={() => {
-                navigation.navigate("Reservar");
-              }}
-            >
-              <Text style={{ color: "white" }}>Reservar Agora</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonsRowModalDisponivel}>
+              <TouchableOpacity
+                style={styles.buttonModal}
+                onPress={() => navigation.navigate("Reservar")}
+              >
+                <Text style={styles.buttonTextModal}>Reservar Agora</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.buttonColor1}
-              onPress={() => setModalDisponivel(false)}
-            >
-              <Text>Fechar</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.buttonOutlineModal}
+                onPress={() => setModalDisponivel(false)}
+              >
+                <Text style={styles.buttonOutlineText}>Fechar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
+        </View>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  containerFlex: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
+    paddingTop: 20,
   },
-  listagem: {
-    display: "flex",
-    backgroundColor: "#D9D9D9",
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#000000",
-    padding: 10,
-    width: "85%",
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#215299",
     alignSelf: "center",
-    marginBottom: 10,
+    marginBottom: 15,
   },
-  botao: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#DDDDDD",
-    width: "100%",
-    marginTop: 4,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: "#000000",
-    padding: 5,
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
-  modalCons: {
-    display: "flex",
-    borderRadius: 10,
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#215299",
+    marginBottom: 8,
   },
-  inputData: {
-    borderRadius: 5,
-    backgroundColor: "#FFFFFF",
-    margin: 10,
-    width: "70%",
-    padding: 8,
-    borderColor: "#000000",
-    borderWidth: 1,
+  cardText: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 6,
   },
-  buttonColor1: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    marginBottom: 5,
-    borderColor: "#000000",
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-  buttonColor2: {
+  button: {
     backgroundColor: "#215299",
-    padding: 10,
-    marginBottom: 5,
-    borderRadius: 5,
-    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 12,
+    shadowColor: "#215299",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  botoesLayout: {
-    display: "flex",
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 18,
+  },
+
+  // Estilos para botões nos modais
+  buttonsRowModalConsulta: {
     flexDirection: "row",
+    justifyContent: "space-between",
     width: "100%",
-    justifyContent: "space-evenly",
-    margin: 10,
+    marginTop: 20,
+  },
+  buttonModal: {
+    backgroundColor: "#215299",
+    paddingVertical: 14,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    alignItems: "center",
+    flex: 1,
+    marginLeft: 10,
+  },
+  buttonTextModal: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  buttonOutlineModal: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#215299",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  buttonOutlineText: {
+    color: "#215299",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+
+  buttonsRowModalDisponivel: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 25,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  modal: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 30,
+    paddingHorizontal: 25,
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#215299",
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#215299",
+    alignSelf: "flex-start",
+    marginBottom: 8,
+  },
+  input: {
+    width: "100%",
+    padding: 14,
+    fontSize: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    color: "#333",
+    marginBottom: 15,
+  },
+  dayTitle: {
+    fontWeight: "700",
+    fontSize: 18,
+    color: "#215299",
+    marginBottom: 6,
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  badge: {
+    backgroundColor: "#215299",
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  badgeText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  noAvailability: {
+    fontStyle: "italic",
+    color: "#999",
+  },
+  selectedRoom: {
+    marginTop: 15,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    alignSelf: "flex-start",
   },
 });

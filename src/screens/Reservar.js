@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  Platform,
 } from "react-native";
 import api from "../axios/axios";
 import DropDownPicker from "react-native-dropdown-picker";
 import * as SecureStore from "expo-secure-store";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function Reservar({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -26,35 +28,36 @@ export default function Reservar({ navigation }) {
     { label: "Sab", value: "Sab" },
   ]);
 
+  // Estados para DateTimePicker
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState("date"); // 'date' ou 'time'
+  const [currentField, setCurrentField] = useState(null);
+
   const [schedule, setSchedule] = useState({
     user: userId,
     dateStart: "",
     dateEnd: "",
-    days: "",
+    days: [],
     classroom: salaSelecionada,
     timeStart: "",
     timeEnd: "",
   });
 
-  const [focusedInput, setFocusedInput] = useState(null);
-
-  const formatInputData = (value) => {
-    let text = value.replace(/[^0-9]/g, "");
-    if (text.length > 4) {
-      text = text.substring(0, 4) + "-" + text.substring(4);
-    }
-    if (text.length > 7) {
-      text = text.substring(0, 7) + "-" + text.substring(7);
-    }
-    return text;
+  // Função para formatar data YYYY-MM-DD
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, "0");
+    const day = `${d.getDate()}`.padStart(2, "0");
+    const year = d.getFullYear();
+    return [year, month, day].join("-");
   };
 
-  const formatInputHora = (value) => {
-    let text = value.replace(/[^0-9]/g, "");
-    if (text.length > 2) {
-      text = text.substring(0, 2) + ":" + text.substring(2);
-    }
-    return text;
+  // Função para formatar hora HH:mm
+  const formatTime = (date) => {
+    const d = new Date(date);
+    const hours = `${d.getHours()}`.padStart(2, "0");
+    const minutes = `${d.getMinutes()}`.padStart(2, "0");
+    return `${hours}:${minutes}`;
   };
 
   useEffect(() => {
@@ -65,14 +68,10 @@ export default function Reservar({ navigation }) {
 
         if (storedUserId) {
           setUserId(storedUserId);
-        } else {
-          console.log("Nenhum userId encontrado");
         }
 
         if (storedSala) {
           setSalaSelecionada(storedSala);
-        } else {
-          console.log("Nenhuma sala selecionada encontrada");
         }
       } catch (error) {
         console.error("Erro ao recuperar dados do SecureStore:", error);
@@ -84,177 +83,154 @@ export default function Reservar({ navigation }) {
 
   useEffect(() => {
     if (userId) {
-      setSchedule((prev) => ({
-        ...prev,
-        user: userId,
-      }));
+      setSchedule((prev) => ({ ...prev, user: userId }));
     }
   }, [userId]);
 
   useEffect(() => {
     if (salaSelecionada) {
-      setSchedule((prev) => ({
-        ...prev,
-        classroom: salaSelecionada,
-      }));
+      setSchedule((prev) => ({ ...prev, classroom: salaSelecionada }));
     }
   }, [salaSelecionada]);
 
   useEffect(() => {
-    setSchedule((prev) => ({
-      ...prev,
-      days: value,
-    }));
+    setSchedule((prev) => ({ ...prev, days: value }));
   }, [value]);
 
-  async function handleReserva() {
-    await api.postReserva(schedule).then(
-      (response) => {
-        Alert.alert(response.data.message);
-        navigation.navigate("ListaReserva", { userId });
-      },
-      (error) => {
-        Alert.alert(error.response.data.error);
+  // Quando fecha o picker, atualiza o valor no campo correto
+  const onChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === "ios"); // no iOS fica aberto, Android fecha automaticamente
+    if (event.type === "dismissed") return; // Cancelou
+
+    if (selectedDate) {
+      if (currentField === "dateStart" || currentField === "dateEnd") {
+        const formatted = formatDate(selectedDate);
+        setSchedule((prev) => ({ ...prev, [currentField]: formatted }));
+      } else if (currentField === "timeStart" || currentField === "timeEnd") {
+        const formatted = formatTime(selectedDate);
+        setSchedule((prev) => ({ ...prev, [currentField]: formatted }));
       }
-    );
+    }
+  };
+
+  // Abre o DateTimePicker no modo correto para o campo clicado
+  const showPicker = (field) => {
+    if (field === "dateStart" || field === "dateEnd") {
+      setDatePickerMode("date");
+    } else {
+      setDatePickerMode("time");
+    }
+    setCurrentField(field);
+    setShowDatePicker(true);
+  };
+
+  async function handleReserva() {
+    try {
+      const response = await api.postReserva(schedule);
+      Alert.alert(response.data.message);
+      navigation.navigate("ListaReserva", { userId });
+    } catch (error) {
+      Alert.alert(error.response?.data?.error || "Erro ao reservar.");
+    }
   }
 
   return (
-    <View>
-      <View style={styles.ViewInputs}>
-        <Text style={styles.Text}>Faça sua reserva:</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Faça sua reserva:</Text>
 
-        <View
-          style={{
-            borderColor: focusedInput === "days" ? "#af2e2e" : "#000000",
-            marginBottom: 20,
-            color: "#000000",
-            fontSize: 12,
-            width: "100%",
-            marginRight: 10,
-          }}
-        >
-          <DropDownPicker
-            style={styles.input}
-            multiple={true}
-            min={1}
-            max={6}
-            open={open}
-            value={value}
-            items={items}
-            setOpen={setOpen}
-            setValue={setValue}
-            setItems={setItems}
-            placeholder="Escolha os dias da semana"
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            {
-              borderColor: focusedInput === "dateStart" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Digite a data de início"
-            value={schedule.dateStart}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => {
-              const text = formatInputData(value);
-              setSchedule({ ...schedule, dateStart: text });
-            }}
-            onFocus={() => setFocusedInput("dateStart")}
-            onBlur={() => setFocusedInput(null)}
-            keyboardType="numeric"
-            maxLength={10}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            {
-              borderColor: focusedInput === "dateEnd" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Digite a data de fim"
-            value={schedule.dateEnd}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => {
-              const text = formatInputData(value);
-              setSchedule({ ...schedule, dateEnd: text });
-            }}
-            onFocus={() => setFocusedInput("dateEnd")}
-            onBlur={() => setFocusedInput(null)}
-            keyboardType="numeric"
-            maxLength={10}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            {
-              borderColor: focusedInput === "timeStart" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Digite a hora de início"
-            value={schedule.timeStart}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => {
-              const text = formatInputHora(value);
-              setSchedule({ ...schedule, timeStart: text });
-            }}
-            onFocus={() => setFocusedInput("timeStart")}
-            onBlur={() => setFocusedInput(null)}
-            keyboardType="numeric"
-            maxLength={5}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.Container,
-            {
-              borderColor: focusedInput === "timeEnd" ? "#af2e2e" : "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            placeholder="Digite a hora de fim"
-            value={schedule.timeEnd}
-            style={styles.input}
-            placeholderTextColor="#000000"
-            onChangeText={(value) => {
-              const text = formatInputHora(value);
-              setSchedule({ ...schedule, timeEnd: text });
-            }}
-            onFocus={() => setFocusedInput("timeEnd")}
-            onBlur={() => setFocusedInput(null)}
-            keyboardType="numeric"
-            maxLength={5}
-          />
-        </View>
+      <View style={styles.dropdownContainer}>
+        <DropDownPicker
+          open={open}
+          value={value}
+          items={items}
+          setOpen={setOpen}
+          setValue={setValue}
+          setItems={setItems}
+          multiple={true}
+          min={1}
+          max={6}
+          placeholder="Escolha os dias da semana"
+          mode="BADGE"
+          badgeColors="#215299"
+          badgeTextStyle={{ color: "#fff", fontWeight: "bold" }}
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainerStyle}
+        />
       </View>
 
-      <View style={styles.viewNavigate}>
+      <TouchableOpacity
+        style={styles.inputTouchable}
+        onPress={() => showPicker("dateStart")}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Data de início"
+          value={schedule.dateStart}
+          editable={false}
+          pointerEvents="none"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.inputTouchable}
+        onPress={() => showPicker("dateEnd")}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Data de fim"
+          value={schedule.dateEnd}
+          editable={false}
+          pointerEvents="none"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.inputTouchable}
+        onPress={() => showPicker("timeStart")}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Hora de início"
+          value={schedule.timeStart}
+          editable={false}
+          pointerEvents="none"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.inputTouchable}
+        onPress={() => showPicker("timeEnd")}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Hora de fim"
+          value={schedule.timeEnd}
+          editable={false}
+          pointerEvents="none"
+        />
+      </TouchableOpacity>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode={datePickerMode}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onChange}
+          minimumDate={new Date(2020, 0, 1)}
+          maximumDate={new Date(2030, 11, 31)}
+        />
+      )}
+
+      <View style={styles.buttonRow}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("ListaSalas", { userId })}
-          style={styles.buttonColor1}
+          onPress={() => navigation.goBack()}
+          style={styles.buttonCancel}
         >
-          <Text style={styles.TextNavigate1}>Voltar</Text>
+          <Text style={styles.buttonCancelText}>Voltar</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleReserva} style={styles.buttonColor2}>
-          <Text style={styles.TextNavigate2}>Reservar</Text>
+
+        <TouchableOpacity onPress={handleReserva} style={styles.buttonConfirm}>
+          <Text style={styles.buttonConfirmText}>Reservar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -262,62 +238,74 @@ export default function Reservar({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 300,
-    height: 300,
-    alignSelf: "center",
-    resizeMode: "contain",
-    marginBottom: -70,
-    marginTop: -50,
+  container: {
+    padding: 20,
+    backgroundColor: "#F5F7FA",
+    flex: 1,
   },
-  ViewInputs: {
-    width: "90%",
-    alignSelf: "center",
-    marginTop: 10,
-  },
-  Text: {
-    fontSize: 25,
-    fontWeight: "500",
-    marginBottom: 15,
-  },
-  Container: {
+  title: {
+    fontSize: 26,
+    fontWeight: "600",
     marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    padding: 8,
-    borderRadius: 10,
-  },
-  input: {
-    color: "#000000",
-    fontSize: 12,
-    width: "100%",
-  },
-  viewNavigate: {
-    display: "flex",
-    flexDirection: "row",
-    width: "90%",
-    alignItems: "center",
-    alignSelf: "center",
-    justifyContent: "space-between",
-  },
-  buttonColor1: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderColor: "#000000",
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-  TextNavigate1: {
     color: "#215299",
   },
-  buttonColor2: {
-    backgroundColor: "#215299",
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
+  dropdownContainer: {
+    marginBottom: 20,
+    zIndex: 1000, // Para evitar sobreposição de dropdowns
   },
-  TextNavigate2: {
-    color: "#FFFFFF",
+  dropdown: {
+    borderColor: "#215299",
+    backgroundColor: "#fff",
+  },
+  dropdownContainerStyle: {
+    borderColor: "#215299",
+  },
+  inputTouchable: {
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#215299",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    color: "#000",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  buttonCancel: {
+    backgroundColor: "#fff",
+    borderColor: "#215299",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    flex: 1,
+    marginRight: 10,
+    alignItems: "center",
+  },
+  buttonCancelText: {
+    color: "#215299",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  buttonConfirm: {
+    backgroundColor: "#215299",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    flex: 1,
+    marginLeft: 10,
+    alignItems: "center",
+  },
+  buttonConfirmText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

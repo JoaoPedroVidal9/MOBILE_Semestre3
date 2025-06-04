@@ -26,41 +26,40 @@ export default function Cadastro({ navigation }) {
 
   async function saveToken(token) {
     await SecureStore.setItemAsync("token", token);
-    console.log(token)
   }
   async function saveCpf(cpf) {
     await SecureStore.setItemAsync("userId", cpf);
-    console.log(cpf)
   }
 
   async function handleCadastro() {
     await api.postCadastro(user).then(
       (response) => {
         Alert.alert(response.data.message);
-        saveToken(response.data.token)
-        saveCpf(user.cpf)
+        saveToken(response.data.token);
+        saveCpf(user.cpf);
         navigation.navigate("ListaReserva", user.cpf);
       },
       (error) => {
-        Alert.alert(error.response.data.error);
+        Alert.alert(error.response?.data?.error || "Erro no cadastro");
       }
     );
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       <Image
         source={require("../../assets/logo_senai.png")}
         style={styles.logo}
       />
 
-      <View style={styles.ViewInputs}>
-        <Text style={styles.Text}>Cadastre-se</Text>
+      <Text style={styles.title}>Cadastre-se</Text>
 
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Nome</Text>
         <View
           style={[
-            styles.Container,
-            { borderColor: focusedInput === "name" ? "#af2e2e" : "#000000" },
+            styles.inputContainer,
+            { borderColor: focusedInput === "name" ? "#215299" : "#ccc" },
           ]}
         >
           <TextInput
@@ -68,100 +67,109 @@ export default function Cadastro({ navigation }) {
             value={user.name}
             onChangeText={(value) => setUser({ ...user, name: value })}
             style={styles.input}
-            placeholderTextColor="#000000"
+            placeholderTextColor="#999"
             maxLength={255}
             onFocus={() => setFocusedInput("name")}
             onBlur={() => setFocusedInput(null)}
           />
         </View>
+      </View>
 
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>E-mail</Text>
         <View
           style={[
-            styles.Container,
-            { borderColor: focusedInput === "email" ? "#af2e2e" : "#000000" },
+            styles.inputContainer,
+            { borderColor: focusedInput === "email" ? "#215299" : "#ccc" },
           ]}
         >
           <TextInput
             placeholder="Digite seu e-mail"
             value={user.email}
             onChangeText={(value) => {
-              // Filtra apenas letras, números, ponto e arroba
-              //Remove qualquer caractere que não seja letra, número, ponto ou arroba.
-              //g no final significa "global"
               const filteredValue = value.replace(/[^a-zA-Z0-9.@]/g, "");
               setUser({ ...user, email: filteredValue });
             }}
             style={styles.input}
-            placeholderTextColor="#000000"
-            keyboardType="email-address" // Incluir @ e . no teclado para facilitar a digitação
-            maxLength={255} // Limita a entrada a 255 caracteres
-            autoCapitalize="none" // Evita letras maiúsculas automáticas
+            placeholderTextColor="#999"
+            keyboardType="email-address"
+            maxLength={255}
+            autoCapitalize="none"
             onFocus={() => setFocusedInput("email")}
             onBlur={() => setFocusedInput(null)}
           />
         </View>
+      </View>
 
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>CPF</Text>
         <View
           style={[
-            styles.Container,
-            { borderColor: focusedInput === "cpf" ? "#af2e2e" : "#000000" },
+            styles.inputContainer,
+            { borderColor: focusedInput === "cpf" ? "#215299" : "#ccc" },
           ]}
         >
           <TextInput
             placeholder="Digite seu CPF *"
-            placeholderTextColor="#000000"
+            placeholderTextColor="#999"
             value={user.cpf}
             onChangeText={(value) => {
-              // Filtra apenas números e limita a 11 caracteres
               const numericValue = value.replace(/[^0-9]/g, "").slice(0, 11);
               setUser({ ...user, cpf: numericValue });
             }}
             style={styles.input}
-            keyboardType="numeric" // Exibe o teclado numérico
-            maxLength={11} // Limita a entrada a 11 caracteres
+            keyboardType="numeric"
+            maxLength={11}
             onFocus={() => setFocusedInput("cpf")}
             onBlur={() => setFocusedInput(null)}
           />
         </View>
+      </View>
 
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Senha</Text>
         <View
           style={[
-            styles.Container2,
-            {
-              borderColor: focusedInput === "password" ? "#af2e2e" : "#000000",
-            },
+            styles.inputContainer,
+            styles.passwordContainer,
+            { borderColor: focusedInput === "password" ? "#215299" : "#ccc" },
           ]}
         >
           <TextInput
             placeholder="Digite sua senha"
             value={user.password}
             onChangeText={(value) => setUser({ ...user, password: value })}
-            style={styles.inputPassword}
-            secureTextEntry={user.showPassword} //A senha não ficar visível a menos que ele clique no icon
-            placeholderTextColor="#000000"
+            style={styles.input}
+            secureTextEntry={user.showPassword}
+            placeholderTextColor="#999"
             maxLength={50}
             onFocus={() => setFocusedInput("password")}
             onBlur={() => setFocusedInput(null)}
           />
-
           <TouchableOpacity
             onPress={() =>
               setUser({ ...user, showPassword: !user.showPassword })
             }
+            style={styles.eyeIcon}
           >
             <Ionicons
               name={user.showPassword ? "eye-off" : "eye"}
-              size={34}
+              size={24}
               color="#808080"
             />
           </TouchableOpacity>
         </View>
+      </View>
 
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Confirme a senha</Text>
         <View
           style={[
-            styles.Container2,
+            styles.inputContainer,
+            styles.passwordContainer,
             {
-              borderColor: focusedInput === "password2" ? "#af2e2e" : "#000000",
+              borderColor:
+                focusedInput === "password2" ? "#215299" : "#ccc",
             },
           ]}
         >
@@ -169,37 +177,37 @@ export default function Cadastro({ navigation }) {
             placeholder="Confirme sua senha"
             value={user.password2}
             onChangeText={(value) => setUser({ ...user, password2: value })}
-            style={styles.inputPassword}
-            secureTextEntry={user.showPassword2} //A senha não ficar visível a menos que ele clique no icon
-            placeholderTextColor="#000000"
+            style={styles.input}
+            secureTextEntry={user.showPassword2}
+            placeholderTextColor="#999"
             maxLength={50}
             onFocus={() => setFocusedInput("password2")}
             onBlur={() => setFocusedInput(null)}
           />
-
           <TouchableOpacity
             onPress={() =>
               setUser({ ...user, showPassword2: !user.showPassword2 })
             }
+            style={styles.eyeIcon}
           >
             <Ionicons
               name={user.showPassword2 ? "eye-off" : "eye"}
-              size={34}
+              size={24}
               color="#808080"
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.viewNavigate}>
+      <View style={styles.footer}>
         <TouchableOpacity
           onPress={() => navigation.navigate("Login")}
-          style={styles.buttonColor1}
+          style={styles.buttonBack}
         >
-          <Text style={styles.TextNavigate1}>Voltar</Text>
+          <Text style={styles.buttonBackText}>Voltar</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleCadastro} style={styles.buttonColor2}>
-          <Text style={styles.TextNavigate2}>Criar Conta</Text>
+        <TouchableOpacity onPress={handleCadastro} style={styles.buttonCreate}>
+          <Text style={styles.buttonCreateText}>Criar Conta</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -207,76 +215,87 @@ export default function Cadastro({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
+    paddingHorizontal: 30,
+    paddingTop: 60,
+  },
   logo: {
-    width: 300,
-    height: 300,
-    alignSelf: "center",
+    width: 250,
+    height: 80,
     resizeMode: "contain",
-    marginBottom: -70,
-    marginTop: -50,
-  },
-  ViewInputs: {
-    width: "90%",
     alignSelf: "center",
-    marginTop: 10,
-  },
-  Text: {
-    fontSize: 25,
-    fontWeight: "500",
-    marginBottom: 15,
-  },
-  Container: {
     marginBottom: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#215299",
+    textAlign: "center",
+    marginBottom: 35,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#215299",
+    marginBottom: 6,
+  },
+  inputContainer: {
     flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  passwordContainer: {
     justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
-    padding: 12,
-    borderRadius: 10,
   },
   input: {
-    color: "#000000",
+    flex: 1,
     fontSize: 16,
-    width: "100%",
+    color: "#333",
   },
-  Container2: {
-    marginBottom: 20,
+  eyeIcon: {
+    marginLeft: 10,
+  },
+  footer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderWidth: 1, //Espessura da borda
-    paddingLeft: 12,
-    padding: 5,
-    borderRadius: 10,
+    marginTop: 30,
   },
-  inputPassword: {
-    color: "#000000",
-    fontSize: 16,
-    width: "90%",
-  },
-  viewNavigate: {
-    display: "flex",
-    flexDirection: "row",
-    width: "90%",
-    alignItems: "center",
-    alignSelf: "center",
-    justifyContent: "space-between",
-  },
-  buttonColor1: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderColor: "#00000",
+  buttonBack: {
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderRadius: 5,
+    borderColor: "#215299",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
   },
-  TextNavigate1: {
+  buttonBackText: {
     color: "#215299",
+    fontWeight: "600",
+    fontSize: 16,
   },
-  buttonColor2: {
+  buttonCreate: {
     backgroundColor: "#215299",
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    shadowColor: "#215299",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  TextNavigate2: {
-    color: "#FFFFFF",
+  buttonCreateText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
   },
 });

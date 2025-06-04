@@ -1,71 +1,68 @@
-import logo_senai from "../../assets/logo_senai.png";
-import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
+import React from "react";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import IoniconsMenu from "@expo/vector-icons/Ionicons";
 import IoniconsUser from "@expo/vector-icons/Ionicons";
+import logo_senai from "../../assets/logo_senai.png";
 
 export default function LayoutMenu({ children, navigation }) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={{ flex: 1}}>
-      <View style={estilos.centralizarRow}>
-        <TouchableOpacity>
-          <IoniconsMenu name="menu" size={24} color="black" />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.barraTopo}>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <IoniconsMenu name="menu" size={28} color="white" />
         </TouchableOpacity>
-        <Image source={logo_senai} style={estilos.logosenai} />
-      </View>
-      <View style={{height:"80%"}}>{children}</View>
-      <View style={estilos.fundoDoUser}>
-        <TouchableOpacity style={estilos.fundoUser} >
-          <IoniconsUser
-            style={estilos.logoBurger}
-            name="person"
-            size={24}
-            color="black"
-            onPress={() => navigation.navigate("Perfil")}
-          />
+
+        <Image source={logo_senai} style={styles.logosenai} />
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Perfil")}
+          style={styles.fundoUser}
+        >
+          <IoniconsUser name="person" size={28} color="white" />
         </TouchableOpacity>
       </View>
+
+      <View style={styles.conteudo}>{children}</View>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  centralizarRow: {
-    display: "flex",
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#215299", // cor da barra e fundo
+  },
+  barraTopo: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "space-between",
+    backgroundColor: "#215299",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-
-  
-
   logosenai: {
-    width: 300,
-    height: 75,
-    margin:20
-    
+    width: 150,
+    height: 40,
+    resizeMode: "contain",
   },
-
-  fundoDoUser: {
-    width:"50",
-    height:"50",
-    marginLeft:"25",
-    display:'flex',
-    alignItems:"center",
-    justifyContent:"center",
-    margin:25
-  },
-  
   fundoUser: {
     backgroundColor: "#ff0000",
-    width:"50",
-    height:"50",
-    borderRadius:"100%",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
-
-  logoBurger:{
-    paddingTop:"25%",
-    paddingLeft:"27%",
-    width:"50",
-    height:"50",
+  conteudo: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
   },
 });
