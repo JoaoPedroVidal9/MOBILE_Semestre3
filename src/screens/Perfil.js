@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  Image,
+  Modal,
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
-import * as SecureStore from "expo-secure-store"
+import * as SecureStore from "expo-secure-store";
 
 export default function AtualizarUsuario({ navigation }) {
   const [user, setUser] = useState({
@@ -18,8 +18,8 @@ export default function AtualizarUsuario({ navigation }) {
     email: "",
     cpf: "",
     password: "",
-    password2:"",
-    oldPassword:"",
+    password2: "",
+    oldPassword: "",
     showPassword: true,
     showPassword2: true,
     showPassword3: true,
@@ -27,37 +27,63 @@ export default function AtualizarUsuario({ navigation }) {
 
   const [currentCpf, setCurrentCpf] = useState("");
   const [focusedInput, setFocusedInput] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
       const cpf = await SecureStore.getItemAsync("userId");
-      const token = await SecureStore.getItemAsync("authorization")
-      console.log("CPF carregado:", cpf);
-      console.log(token)
-      setUser((prev) => ({ ...prev, cpf: cpf }));
+
       setCurrentCpf(cpf);
+
+      try {
+        const response = await api.getUserById(cpf);
+        console.log("Dados recebidos da API:", response.data);
+
+        const { name, email } = response.data.user;
+
+        setUser((prev) => ({
+          ...prev,
+          cpf: cpf,
+          name: name || "",
+          email: email || "",
+        }));
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+      }
     }
+
     loadUser();
   }, []);
 
-
-  
   async function handleAtualizar() {
-    await api.putAtualizarUsuario(currentCpf, user)
-        .then(
-            (response) => {
-                Alert.alert(response.data.message);
-                if (currentCpf !== user.cpf) {
-                    AsyncStorage.setItem("userId", user.cpf);
-                    setCurrentCpf(user.cpf);
-                }
-            },
-            (error) => {
-                Alert.alert(error.response.data.error);
-            }
-        );
-}
+    await api.putAtualizarUsuario(currentCpf, user).then(
+      (response) => {
+        Alert.alert(response.data.message);
+        if (currentCpf !== user.cpf) {
+          setCurrentCpf(user.cpf);
+          SecureStore.setItemAsync("userId", user.cpf);
+          SecureStore.setItemAsync("token", response.data.token);
+          console.log(response.data.token)
+        }
+      },
+      (error) => {
+        Alert.alert(error.response.data.error);
+        console.log(user.cpf)
+      }
+    );
+  }
 
+  async function handleDeletar() {
+    await api.deleteUser(currentCpf).then(
+      (response) => {
+        Alert.alert(response.data.message);
+        navigation.navigate("Login");
+      },
+      (error) => {
+        Alert.alert(error.response.data.error);
+      }
+    );
+  }
   return (
     <View>
       <View style={styles.ViewInputs}>
@@ -128,13 +154,13 @@ export default function AtualizarUsuario({ navigation }) {
           />
         </View>
 
-        {/* Senha */}
-        
+        {/* Senhas */}
         <View
           style={[
             styles.Container2,
             {
-              borderColor: focusedInput === "oldPassword" ? "#af2e2e" : "#000000",
+              borderColor:
+                focusedInput === "oldPassword" ? "#af2e2e" : "#000000",
             },
           ]}
         >
@@ -238,6 +264,67 @@ export default function AtualizarUsuario({ navigation }) {
           <Text style={styles.TextNavigate2}>Salvar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Botão Deletar */}
+      <View style={{ width: "90%", alignSelf: "center", marginTop: 15 }}>
+        <TouchableOpacity
+          onPress={() => setShowDeleteModal(true)}
+          style={{
+            backgroundColor: "#af2e2e",
+            paddingVertical: 12,
+            borderRadius: 8,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            Deletar Usuário
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal de Confirmação */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={showDeleteModal}
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.modalContainer}>
+            <Text style={modalStyles.title}>Confirmação</Text>
+            <Text style={modalStyles.message}>
+              Você tem certeza que deseja deletar seu usuário?
+            </Text>
+
+            <View style={modalStyles.buttonsContainer}>
+              <TouchableOpacity
+                style={[modalStyles.button, { backgroundColor: "#ccc" }]}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text style={modalStyles.buttonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[modalStyles.button, { backgroundColor: "#af2e2e" }]}
+                onPress={async () => {
+                  setShowDeleteModal(false);
+                  await handleDeletar();
+                }}
+              >
+                <Text style={[modalStyles.buttonText, { color: "#fff" }]}>
+                  Deletar
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -331,3 +418,42 @@ const styles = StyleSheet.create({
   },
 });
 
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#af2e2e",
+  },
+  message: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: "#333",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

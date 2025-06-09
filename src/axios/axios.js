@@ -26,6 +26,8 @@ const sheets =  {
     getListaReserva: (userId) => api.get(`schedule/user/${userId}`),
     deleteReserva: (reservaId) => api.delete(`schedule/${reservaId}`),
     putAtualizarUsuario: (currentCpf, user) => api.put(`user/${currentCpf}`, user),
+    getUserById: (userId) => api.get(`user/${userId}`),
+    deleteUser: (userId) => api.delete(`user/${userId}`),
 }
 
 export default sheets
