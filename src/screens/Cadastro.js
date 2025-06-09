@@ -37,7 +37,7 @@ export default function Cadastro({ navigation }) {
         Alert.alert(response.data.message);
         saveToken(response.data.token);
         saveCpf(user.cpf);
-        navigation.navigate("Perfil", user.cpf);
+        navigation.navigate("Home", user.cpf);
       },
       (error) => {
         Alert.alert(error.response.data.error);
