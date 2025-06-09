@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo, Bonas!</Text>
+      <Text style={styles.title}>Bem-vindo!</Text>
 
       <TouchableOpacity
         style={styles.button}
