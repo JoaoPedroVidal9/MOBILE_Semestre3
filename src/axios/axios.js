@@ -28,6 +28,7 @@ const sheets =  {
     putAtualizarUsuario: (currentCpf, user) => api.put(`user/${currentCpf}`, user),
     getUserById: (userId) => api.get(`user/${userId}`),
     deleteUser: (userId) => api.delete(`user/${userId}`),
+    getUserSchedules: (userId) => api.get(`schedule/user/${userId}`),
 }
 
 export default sheets

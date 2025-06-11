@@ -20,6 +20,7 @@ export default function AtualizarUsuario({ navigation }) {
     password: "",
     password2: "",
     oldPassword: "",
+    contagem:"",
     showPassword: true,
     showPassword2: true,
     showPassword3: true,
@@ -37,15 +38,14 @@ export default function AtualizarUsuario({ navigation }) {
 
       try {
         const response = await api.getUserById(cpf);
-        console.log("Dados recebidos da API:", response.data);
 
         const { name, email } = response.data.user;
 
         setUser((prev) => ({
           ...prev,
           cpf: cpf,
-          name: name || "",
-          email: email || "",
+          name: name,
+          email: email,
         }));
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
@@ -53,6 +53,7 @@ export default function AtualizarUsuario({ navigation }) {
     }
 
     loadUser();
+    getUserSchedules();
   }, []);
 
   async function handleAtualizar() {
@@ -63,12 +64,10 @@ export default function AtualizarUsuario({ navigation }) {
           setCurrentCpf(user.cpf);
           SecureStore.setItemAsync("userId", user.cpf);
           SecureStore.setItemAsync("token", response.data.token);
-          console.log(response.data.token)
         }
       },
       (error) => {
         Alert.alert(error.response.data.error);
-        console.log(user.cpf)
       }
     );
   }
@@ -83,6 +82,22 @@ export default function AtualizarUsuario({ navigation }) {
         Alert.alert(error.response.data.error);
       }
     );
+  }
+
+  async function getUserSchedules(){
+    try {
+      const cpf = await SecureStore.getItemAsync("userId");
+      const response = await api.getUserSchedules(cpf)
+      const numeroReservas = response.data.contagem
+
+      setUser((prev) => ({
+          ...prev,
+          contagem: String(numeroReservas)
+      }))
+    } catch (error) {
+      Alert.alert(error.response.data.error)
+    }
+    
   }
   return (
     <View>
@@ -251,6 +266,8 @@ export default function AtualizarUsuario({ navigation }) {
             />
           </TouchableOpacity>
         </View>
+        
+        <Text>Número de reservas do usuário: {user.contagem}</Text>
       </View>
 
       <View style={styles.viewNavigate}>

@@ -105,7 +105,7 @@ export default function ListaSalas({ navigation }) {
       setSalas(response.data.classrooms);
       setLoading(false);
     } catch (error) {
-      console.log(error.response?.data?.error || error.message);
+      console.log(error.response.data.error);
       setLoading(false);
     }
   }
@@ -128,7 +128,7 @@ export default function ListaSalas({ navigation }) {
       setModalDisponivel(true);
     } catch (error) {
       Alert.alert(
-        error.response?.data?.error || "Erro ao consultar disponibilidade."
+        error.response.data.error
       );
     }
   }
@@ -198,7 +198,7 @@ export default function ListaSalas({ navigation }) {
                 display="calendar"
                 onChange={onDateChange}
                 maximumDate={new Date(2100, 11, 31)}
-                minimumDate={new Date(2000, 0, 1)}
+                minimumDate={new Date(2025, 0, 1)}
               />
             )}
 

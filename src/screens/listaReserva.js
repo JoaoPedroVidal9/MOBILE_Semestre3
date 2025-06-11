@@ -27,10 +27,9 @@ export default function ListaReserva({ navigation }) {
       const response = await api.getListaReserva(userId);
       setReservas(response.data.results);
     } catch (error) {
-      console.log(error?.response?.data?.error || error.message);
-    } finally {
-      setLoading(false);
+      console.log(error.response.data.error);
     }
+    setLoading(false);
   }
 
   function formatarData(dataString) {
@@ -52,7 +51,7 @@ export default function ListaReserva({ navigation }) {
       setReservas(reservas.filter((item) => item.id !== reservaSelecionada.id));
       setModalVisible(false);
     } catch (error) {
-      console.log("Erro ao cancelar reserva:", error);
+      console.log("Erro ao cancelar reserva:", error.response.data.error);
     }
   }
 
@@ -63,7 +62,7 @@ export default function ListaReserva({ navigation }) {
       {loading ? (
         <ActivityIndicator size="large" color="#215299" style={{ marginTop: 50 }} />
       ) : reservas.length === 0 ? (
-        <Text style={styles.semReservaTexto}>Nenhuma reserva encontrada</Text>
+        <Text style={styles.semReservaTexto}>Nenhuma reserva para este usuário</Text>
       ) : (
         <FlatList
           data={reservas}

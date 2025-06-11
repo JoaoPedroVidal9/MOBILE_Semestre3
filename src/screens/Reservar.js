@@ -216,7 +216,7 @@ export default function Reservar({ navigation }) {
           mode={datePickerMode}
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onChange}
-          minimumDate={new Date(2020, 0, 1)}
+          minimumDate={new Date(2025, 0, 1)}
           maximumDate={new Date(2030, 11, 31)}
         />
       )}
