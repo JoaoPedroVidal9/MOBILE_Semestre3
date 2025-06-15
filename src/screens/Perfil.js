@@ -272,7 +272,7 @@ export default function AtualizarUsuario({ navigation }) {
 
       <View style={styles.viewNavigate}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate("Home")}
           style={styles.buttonColor1}
         >
           <Text style={styles.TextNavigate1}>Voltar</Text>

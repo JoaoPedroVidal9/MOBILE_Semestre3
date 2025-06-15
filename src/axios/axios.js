@@ -2,7 +2,7 @@ import axios from "axios"
 import * as SecureStore from 'expo-secure-store'
 
 const api = axios.create({
-    baseURL: "http://10.89.240.75:5000/api/reservas/v3/", 
+    baseURL: "http://192.168.100.6:5000/api/reservas/v3/", 
     headers: {"accept": "application/json"}
 })
 
@@ -29,6 +29,7 @@ const sheets =  {
     getUserById: (userId) => api.get(`user/${userId}`),
     deleteUser: (userId) => api.delete(`user/${userId}`),
     getUserSchedules: (userId) => api.get(`schedule/user/${userId}`),
+    postDaysWeekSchedule: (daysDate) => api.post(`schedule/days`, daysDate),
 }
 
 export default sheets

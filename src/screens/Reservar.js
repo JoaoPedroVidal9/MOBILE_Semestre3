@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import {
   View,
   Text,
@@ -16,21 +16,15 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 export default function Reservar({ navigation }) {
   const [userId, setUserId] = useState(null);
   const [salaSelecionada, setSalaSelecionada] = useState(null);
+  const [listClassroom, setListClassroom] = useState([]);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([]);
-  const [items, setItems] = useState([
-    { label: "Seg", value: "Seg" },
-    { label: "Ter", value: "Ter" },
-    { label: "Qua", value: "Qua" },
-    { label: "Qui", value: "Qui" },
-    { label: "Sex", value: "Sex" },
-    { label: "Sab", value: "Sab" },
-  ]);
+  const [items, setItems] = useState([]);
 
   // Estados para DateTimePicker
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerMode, setDatePickerMode] = useState("date"); // 'date' ou 'time'
+  const [datePickerMode, setDatePickerMode] = useState("date");
   const [currentField, setCurrentField] = useState(null);
 
   const [schedule, setSchedule] = useState({
@@ -38,6 +32,7 @@ export default function Reservar({ navigation }) {
     dateStart: "",
     dateEnd: "",
     days: [],
+    daysWeek: [],
     classroom: salaSelecionada,
     timeStart: "",
     timeEnd: "",
@@ -79,6 +74,7 @@ export default function Reservar({ navigation }) {
     };
 
     getUserData();
+    getAllClassrooms();
   }, []);
 
   useEffect(() => {
@@ -94,13 +90,53 @@ export default function Reservar({ navigation }) {
   }, [salaSelecionada]);
 
   useEffect(() => {
+    if (schedule.dateStart && schedule.dateEnd) {
+      postDaysForSchedule();
+    }
+  }, [schedule.dateStart, schedule.dateEnd]);
+
+  useEffect(() => {
     setSchedule((prev) => ({ ...prev, days: value }));
   }, [value]);
 
+  async function getAllClassrooms() {
+    try {
+      const response = await api.getSalas();
+      setListClassroom(response.data.classrooms.map((sala) => sala.number));
+    } catch (error) {
+      console.log("Erro", error);
+      Alert.alert(error.response.data.error);
+    }
+  }
+
+  async function postDaysForSchedule() {
+    try {
+      const response = await api.postDaysWeekSchedule({
+        dateStart: schedule.dateStart,
+        dateEnd: schedule.dateEnd
+      });
+      
+      setSchedule((prev) => ({
+        ...prev,
+        daysWeek: response.data.days
+      }));
+      
+      // Atualiza os itens do dropdown
+      setItems(response.data.days.map(day => ({
+        label: day,
+        value: day
+      })));
+      
+    } catch (error) {
+      console.log("Erro", error);
+      Alert.alert(error.response.data.error);
+    }
+  }
+
   // Quando fecha o picker, atualiza o valor no campo correto
   const onChange = (event, selectedDate) => {
-    setShowDatePicker(Platform.OS === "ios"); // no iOS fica aberto, Android fecha automaticamente
-    if (event.type === "dismissed") return; // Cancelou
+    setShowDatePicker(Platform.OS === "ios");
+    if (event.type === "dismissed") return;
 
     if (selectedDate) {
       if (currentField === "dateStart" || currentField === "dateEnd") {
@@ -130,33 +166,13 @@ export default function Reservar({ navigation }) {
       Alert.alert(response.data.message);
       navigation.navigate("ListaReserva", { userId });
     } catch (error) {
-      Alert.alert(error.response?.data?.error || "Erro ao reservar.");
+      Alert.alert(error.response.data.error);
     }
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Faça sua reserva:</Text>
-
-      <View style={styles.dropdownContainer}>
-        <DropDownPicker
-          open={open}
-          value={value}
-          items={items}
-          setOpen={setOpen}
-          setValue={setValue}
-          setItems={setItems}
-          multiple={true}
-          min={1}
-          max={6}
-          placeholder="Escolha os dias da semana"
-          mode="BADGE"
-          badgeColors="#215299"
-          badgeTextStyle={{ color: "#fff", fontWeight: "bold" }}
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainerStyle}
-        />
-      </View>
 
       <TouchableOpacity
         style={styles.inputTouchable}
@@ -183,6 +199,27 @@ export default function Reservar({ navigation }) {
           pointerEvents="none"
         />
       </TouchableOpacity>
+
+      <View style={styles.dropdownContainer}>
+        <DropDownPicker
+          open={open}
+          value={value}
+          items={items}
+          setOpen={setOpen}
+          setValue={setValue}
+          setItems={setItems}
+          multiple={true}
+          min={1}
+          max={6}
+          placeholder="Escolha os dias da semana"
+          mode="BADGE"
+          badgeColors="#215299"
+          badgeTextStyle={{ color: "#fff", fontWeight: "bold" }}
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainerStyle}
+          disabled={items.length === 0}
+        />
+      </View>
 
       <TouchableOpacity
         style={styles.inputTouchable}
@@ -216,7 +253,7 @@ export default function Reservar({ navigation }) {
           mode={datePickerMode}
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onChange}
-          minimumDate={new Date(2025, 0, 1)}
+          minimumDate={new Date()}
           maximumDate={new Date(2030, 11, 31)}
         />
       )}
@@ -251,7 +288,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     marginBottom: 20,
-    zIndex: 1000, // Para evitar sobreposição de dropdowns
+    zIndex: 1000,
   },
   dropdown: {
     borderColor: "#215299",
