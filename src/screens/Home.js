@@ -23,8 +23,6 @@ export default function Home({ navigation }) {
       <TouchableOpacity
         style={[styles.button, styles.logoutButton]}
         onPress={() => {
-          // Aqui você pode limpar o token e navegar para login, por exemplo
-          // SecureStore.deleteItemAsync("token");
           navigation.navigate("Login");
         }}
       >

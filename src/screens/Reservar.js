@@ -74,7 +74,6 @@ export default function Reservar({ navigation }) {
     };
 
     getUserData();
-    getAllClassrooms();
   }, []);
 
   useEffect(() => {
@@ -98,16 +97,6 @@ export default function Reservar({ navigation }) {
   useEffect(() => {
     setSchedule((prev) => ({ ...prev, days: value }));
   }, [value]);
-
-  async function getAllClassrooms() {
-    try {
-      const response = await api.getSalas();
-      setListClassroom(response.data.classrooms.map((sala) => sala.number));
-    } catch (error) {
-      console.log("Erro", error);
-      Alert.alert(error.response.data.error);
-    }
-  }
 
   async function postDaysForSchedule() {
     try {

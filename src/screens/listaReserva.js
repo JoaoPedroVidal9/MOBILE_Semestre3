@@ -75,6 +75,7 @@ export default function ListaReserva({ navigation }) {
               <Text style={styles.textoCentral}>Horário de Início: {item.timeStart}</Text>
               <Text style={styles.textoCentral}>Horário de Fim: {item.timeEnd}</Text>
               <Text style={styles.textoCentral}>Número da Sala: {item.classroom}</Text>
+              <Text style={styles.textoCentral}>Dias: {item.days}</Text>
 
               <View style={styles.botoesLayout}>
                 <TouchableOpacity
